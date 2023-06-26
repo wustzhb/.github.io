@@ -1,0 +1,262 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><title>[免杀学习]动态链接库初探(下) | Lanb0's blog|一个默默无闻的网安爱好者</title><meta name="author" content="lanb0"><meta name="copyright" content="lanb0"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="这篇文章会详细的讲述动态链接库的运行时动态链接机制，如果没有基础的师傅建议先看上篇文章《 [免杀学习]动态链接库初探(下) 》 知识点回顾上篇文章中主要讲解了动态链接类型里的加载时动态链接，与本节要讲的运行时动态链接的区别在： 理论层面加载时动态链接是在程序编译时就把对应的DLL文件加载进了程序，而运行时动态链接则是在程序运行时，也就是代码执行到了 LoadLibrary这个函数时才会把对应的DL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[免杀学习]动态链接库初探(下)">
+<meta property="og:url" content="https://wustzhb.github.io/2023/06/26/[%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0]%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8B)/index.html">
+<meta property="og:site_name" content="Lanb0&#39;s blog|一个默默无闻的网安爱好者">
+<meta property="og:description" content="这篇文章会详细的讲述动态链接库的运行时动态链接机制，如果没有基础的师傅建议先看上篇文章《 [免杀学习]动态链接库初探(下) 》 知识点回顾上篇文章中主要讲解了动态链接类型里的加载时动态链接，与本节要讲的运行时动态链接的区别在： 理论层面加载时动态链接是在程序编译时就把对应的DLL文件加载进了程序，而运行时动态链接则是在程序运行时，也就是代码执行到了 LoadLibrary这个函数时才会把对应的DL">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wustzhb.github.io/img/head.jpg">
+<meta property="article:published_time" content="2023-06-26T04:03:00.000Z">
+<meta property="article:modified_time" content="2023-06-26T16:09:07.208Z">
+<meta property="article:author" content="lanb0">
+<meta property="article:tag" content="WindowApi">
+<meta property="article:tag" content="免杀">
+<meta property="article:tag" content="DLL">
+<meta property="article:tag" content="动态链接库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wustzhb.github.io/img/head.jpg"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://wustzhb.github.io/2023/06/26/[%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0]%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8B)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  }
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '[免杀学习]动态链接库初探(下)',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-06-27 00:09:07'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">28</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/index_img.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Lanb0's blog|一个默默无闻的网安爱好者"><span class="site-name">Lanb0's blog|一个默默无闻的网安爱好者</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">[免杀学习]动态链接库初探(下)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-06-26T04:03:00.000Z" title="发表于 2023-06-26 12:03:00">2023-06-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-06-26T16:09:07.208Z" title="更新于 2023-06-27 00:09:07">2023-06-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%8D%E6%9D%80%E7%B3%BB%E5%88%97/">免杀系列</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%8D%E6%9D%80%E7%B3%BB%E5%88%97/Winows-Api/">Winows Api</a></span></div><div class="meta-secondline"></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>这篇文章会详细的讲述动态链接库的<strong>运行时动态链接机制</strong>，如果没有基础的师傅建议先看上篇文章<a href="https://wustzhb.github.io/2023/06/25/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8A)/">《 [免杀学习]动态链接库初探(下) 》</a></p>
+<h2 id="知识点回顾"><a href="#知识点回顾" class="headerlink" title="知识点回顾"></a>知识点回顾</h2><p>上篇文章中主要讲解了动态链接类型里的<strong>加载时动态链接</strong>，与本节要讲的<strong>运行时动态链接</strong>的区别在：</p>
+<h3 id="理论层面"><a href="#理论层面" class="headerlink" title="理论层面"></a>理论层面</h3><p><strong>加载时动态链接</strong>是在<strong>程序编译时</strong>就把对应的<strong>DLL文件</strong>加载进了程序，而运行时动态链接则是在<strong>程序运行时</strong>，也就是代码执行到了 <strong>LoadLibrary</strong>这个函数时才会把对应的DLL文件加载进程序，然后<strong>处理</strong>一下才可以使用</p>
+<blockquote>
+<p>这里的处理指的是运行时动态链接需要通过一些额外的步骤才能开始使用DLL中的函数，而加载时动态链接则不需要额外的步骤，在导入DLL后就可以直接用函数名称来使用函数</p>
+</blockquote>
+<p>虽然看起来<strong>运行时动态链接</strong>比<strong>加载时动态链接</strong>和<strong>静态链接</strong>在使用和理解上要难一丢丢，但是在<strong>免杀</strong>方面有很大的优势，如</p>
+<ol>
+<li>运行时动态链接可以让攻击者在需要的时候才加载和调用DLL函数，而不是在程序启动时就加载所有的DLL，这样可以减少可疑的行为和被检测的风险。</li>
+<li>运行时动态链接可以让攻击者使用API函数来获取DLL函数的地址，而不是使用导入表或者重定位表，这样可以避免被静态分析工具发现和拦截</li>
+<li>运行时动态链接可以让攻击者使用反射技术来加载和执行DLL文件，而不是使用系统提供的加载器，这样可以绕过一些安全机制和监控工具。、</li>
+<li>运行时动态链接不需要lib倒入库，只要能找到DLL即可利用</li>
+</ol>
+<h3 id="代码层面"><a href="#代码层面" class="headerlink" title="代码层面"></a>代码层面</h3><p><strong>加载时动态链接:</strong></p>
+<p>需要在代码中显示调用，并且需要手动导入lib导入库,或者说明查找路径</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> comment(lib,<span class="string">&quot;MyDll.lib&quot;</span> )</span></span><br><span class="line">__declspec(dllimport) <span class="function"><span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>运行时动态链接:</strong></p>
+<p>不需要显示调用,但需要额外处理</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义一个函数指针</span></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">int</span> <span class="params">(* func)</span><span class="params">(<span class="type">int</span>,<span class="type">int</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 加载DLL</span></span><br><span class="line">HMODULE hModule = <span class="built_in">LoadLibrary</span>(<span class="string">&quot;MyDll2.dll&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取add方法的地址，并赋予函数指针使其可用</span></span><br><span class="line">func add = (func)<span class="built_in">GetProcAddress</span>(hModule, <span class="string">&quot;add&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用add方法</span></span><br><span class="line">cout &lt;&lt; <span class="built_in">add</span>(<span class="number">1</span>,<span class="number">2</span>) &lt;&lt; endl;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>说完了区别，开始系统的讲解一下<strong>运行时动态链接</strong>的编写和使用</p>
+<h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><h3 id="函数指针"><a href="#函数指针" class="headerlink" title="函数指针"></a>函数指针</h3><p>函数指针顾名思义就是指向<strong>函数</strong>的<strong>指针</strong></p>
+<p>说的再本质一点就是指针中<strong>存储的地址</strong>是一个<strong>函数的地址</strong></p>
+<p><strong>函数指针的基本定义格式为:</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//定义一个函数指针变量</span></span><br><span class="line">返回值类型 (*指针名称) (参数<span class="number">1</span>类型,........);</span><br></pre></td></tr></table></figure>
+
+<p>看个例子来理解</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="comment">//声明一个函数指针变量</span></span><br><span class="line"><span class="built_in">int</span> (*funcPtr) (<span class="type">int</span>, <span class="type">int</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="comment">// 把add函数的地址赋予funcPtr函数指针</span></span><br><span class="line">	funcPtr = &amp;add;<span class="comment">//这里的&amp;可以省略，因为add本来就代表函数的地址</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//通过函数指针调用add方法</span></span><br><span class="line">	<span class="type">int</span> c=<span class="built_in">funcPtr</span>(<span class="number">1</span>, <span class="number">2</span>);</span><br><span class="line">	cout &lt;&lt; c &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>从这个例子可以看出，这种声明方式相当于是声明了一个函数指针变量，这个变量适用于返回值为int，且有2个int参数的函数</strong></p>
+<blockquote>
+<p>但这种方式有个缺点，就是无法复用，如果我们有多个符合这种函数特征的方法需要用函数指针调用，那是不是还得多次声明多个函数指针变量?</p>
+<p>为了解决这个问题,只需要在开头加个<strong>typedef</strong>,这样就相当于把funcPtr当做一个新的类型来使用，可以通过这个新的类型来声明函数指针变量</p>
+</blockquote>
+<p>上述代码可以修改为</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="comment">//声明一个函数指针类型,类型名称为funcPtr</span></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">int</span> <span class="params">(*funcPtr)</span> <span class="params">(<span class="type">int</span>, <span class="type">int</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="comment">// 创建一个funcPtr类型的函数指针变量func,并将add函数的地址赋予func函数指针</span></span><br><span class="line">	funcPtr func = add;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//通过函数指针func调用add方法</span></span><br><span class="line">	<span class="type">int</span> c=<span class="built_in">func</span>(<span class="number">1</span>, <span class="number">2</span>);</span><br><span class="line">	cout &lt;&lt; c &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数指针刚开始看可能会觉得有点抽象，但理解后其实很容易看透其本质</p>
+<h3 id="Windows-Api编码问题"><a href="#Windows-Api编码问题" class="headerlink" title="Windows Api编码问题"></a>Windows Api编码问题</h3><p>win的api函数一般会提供2个版本，一个是函数名+A,一个是函数名+W</p>
+<p><strong>函数名+A结尾:支持ANSI编码，也就是ASCII编码，也可以说是多字节字符集编码</strong></p>
+<p><strong>函数名+W结尾:支持Unicode编码，也就是宽字节编码</strong></p>
+<p>在Visual studio2022中，使用的编码方式为<strong>ASCII</strong>编码，所以如果要使用W结尾的函数，那么必须在字符串型参数的双引号前加”<strong>L</strong>“,表明以Unicode编码这个字符串</p>
+<p>当然，如果你不想在每个函数结尾都要手动声明A或者W的话，可以设置<strong>项目属性&gt;配置类型-&gt;高级-&gt;字符集-&gt;多字节字符集</strong>，这样visual 就会默认使用<strong>A结尾</strong>的api函数</p>
+<blockquote>
+<p>tips:如果需要用中文，那还是推荐使用Unicode编码，因为ansi对中文会乱码</p>
+</blockquote>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20230626_4.png"></p>
+<h3 id="LoadLibrary函数"><a href="#LoadLibrary函数" class="headerlink" title="LoadLibrary函数"></a>LoadLibrary函数</h3><p>要进行运行时的动态链接，通常顺序是<strong>引入DLL-&gt;查找DLL中的函数地址-&gt;使用函数</strong>-&gt;<strong>卸载DLL</strong></p>
+<p><strong>LoadLibrary函数的作用就是引入DLL</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">HMODULE <span class="title">LoadLibraryA</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  [in] LPCSTR lpLibFileName</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>lpLibFileName：模块的名称，可以是DLL或EXE文件。如果指定了完整路径，只搜索该路径；如果指定了相对路径或没有路径的模块名，使用标准搜索策略。如果省略了文件扩展名，会追加默认的“.DLL”。</strong></p>
+<blockquote>
+<p>注释:LoadLibrary方法通常就是为了导入DLL模块,获取到DLL模块的句柄后就可以在后续获取其中想要使用的函数地址</p>
+</blockquote>
+<p>在代码中通常是这样用的</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 加载DLL</span></span><br><span class="line">HMODULE hModule = <span class="built_in">LoadLibrary</span>(<span class="string">&quot;MyDll2.dll&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>HMODULE是一个<strong>模块句柄</strong>，相当于获得了dll的地址。它是一个指针类型</p>
+</blockquote>
+<h3 id="GetProcAddress函数"><a href="#GetProcAddress函数" class="headerlink" title="GetProcAddress函数"></a>GetProcAddress函数</h3><p>当我们引入一个DLL后，我们就可以使用其句柄来查找存在于这个DLL中的函数的地址了(第二步),这个过程的实现主要就是通过使用GetProcAddress函数</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">FARPROC <span class="title">GetProcAddress</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  [in] HMODULE hModule,</span></span></span><br><span class="line"><span class="params"><span class="function">  [in] LPCSTR  lpProcName</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>hModule:模块句柄</strong></p>
+<p><strong>lpProcName:函数名</strong></p>
+<p>在代码中这样使用</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">int</span> <span class="params">(* func)</span><span class="params">(<span class="type">int</span>,<span class="type">int</span>)</span></span>;</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">func add = (func)<span class="built_in">GetProcAddress</span>(hModule, <span class="string">&quot;add&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>因为GetProcAddress的返回值是一个<strong>FARPROC</strong>类型，它是一个<strong>通用函数指针</strong>，没有指定参数和返回值的类型。为了能够正确地调用add函数，需要将FARPROC转换为func类型，也就是指定了参数和返回值为int的函数指针。这样才能保证函数调用的安全和正确。</p>
+<blockquote>
+<p>因为需要进行类型转换，所以必须使用typedef来创建一个函数指针的类型，而不能只定义一个函数指针变量</p>
+</blockquote>
+<h3 id="FreeLibrary函数"><a href="#FreeLibrary函数" class="headerlink" title="FreeLibrary函数"></a>FreeLibrary函数</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">BOOL <span class="title">FreeLibrary</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  [in] HMODULE hLibModule</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>作用很简单，就是把导入的DLL卸载了</strong></p>
+<h3 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h3><p>首先把上篇生成的.dll文件放到当前项目下，然后在项目里新建一个cpp输入以下代码</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="comment">// 定义一个函数指针</span></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">int</span> <span class="params">(* func)</span><span class="params">(<span class="type">int</span>,<span class="type">int</span>)</span></span>;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 加载DLL</span></span><br><span class="line">    HMODULE hModule = <span class="built_in">LoadLibrary</span>(<span class="string">&quot;MyDll2.dll&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (hModule == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Failed to load dll\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取add方法的地址，并赋予函数指针使其可用</span></span><br><span class="line">    func add = (func)<span class="built_in">GetProcAddress</span>(hModule, <span class="string">&quot;add&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (add == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Failed to get the address of add func \n&quot;</span>);</span><br><span class="line">        <span class="built_in">FreeLibrary</span>(hModule);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 调用add方法</span></span><br><span class="line">    cout &lt;&lt; <span class="built_in">add</span>(<span class="number">1</span>,<span class="number">2</span>) &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 卸载dll</span></span><br><span class="line">    <span class="built_in">FreeLibrary</span>(hModule);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>成功运行</p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20230626_5.png"></p>
+<h2 id="举一反三"><a href="#举一反三" class="headerlink" title="举一反三"></a>举一反三</h2><p>我们在上篇说道，DLL库有DllMain入口函数，我们能否在加载DLL(LoadLibrary)或卸载DLL(FreeLibrary)时做一些恶意操作?</p>
+<p>重新编写一下MyDll,在上篇我们已经演示过在引入DLL时执行额外操作，这次我们来尝试在卸载DLL时打开计算器</p>
+<p>打开MyDll2.cpp,编写如下代码</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//MyDll2.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;Windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cstdlib&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;MyDll2.h&quot;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function">BOOL WINAPI <span class="title">DllMain</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    HINSTANCE hinstDLL,  <span class="comment">// handle to DLL module</span></span></span></span><br><span class="line"><span class="params"><span class="function">    DWORD fdwReason,     <span class="comment">// reason for calling function</span></span></span></span><br><span class="line"><span class="params"><span class="function">    LPVOID lpvReserved)</span>  <span class="comment">// reserved</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// Perform actions based on the reason for calling.</span></span><br><span class="line">    <span class="keyword">switch</span> (fdwReason)</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">case</span> DLL_PROCESS_ATTACH:</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> DLL_THREAD_ATTACH:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> DLL_THREAD_DETACH:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> DLL_PROCESS_DETACH:</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;卸载DLL成功&quot;</span> &lt;&lt; endl;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;calc.exe start&quot;</span> &lt;&lt; endl;</span><br><span class="line">        <span class="built_in">system</span>(<span class="string">&quot;calc.exe&quot;</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> TRUE;  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>重新生成项目(这里有问题的建议看看上篇),然后只需要把生成的dll文件放在Project目录下</p>
+<p><strong>运行main.cpp,成功执行并且按照我们的预期打开了calc.exe！</strong></p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20230627_1.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io">lanb0</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io/2023/06/26/[%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0]%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8B)/">https://wustzhb.github.io/2023/06/26/[%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0]%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8B)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wustzhb.github.io" target="_blank">Lanb0's blog|一个默默无闻的网安爱好者</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/WindowApi/">WindowApi</a><a class="post-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a><a class="post-meta__tags" href="/tags/DLL/">DLL</a><a class="post-meta__tags" href="/tags/%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93/">动态链接库</a></div><div class="post_share"><div class="social-share" data-image="/img/head.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/06/25/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8A)/" title="[免杀学习]动态链接库初探(上)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">[免杀学习]动态链接库初探(上)</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/06/25/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8A)/" title="[免杀学习]动态链接库初探(上)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-25</div><div class="title">[免杀学习]动态链接库初探(上)</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">lanb0</div><div class="author-info__description">充实地过好每一天</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">28</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div><div class="card-info-social-icons is-center"><a class="social-icon" href="https://qm.qq.com/cgi-bin/qm/qr?k=Ga7oV2UM08biI8VudKTeFcEdzYPbbXdz&amp;noverify=0&amp;personal_qrcode_source=4" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">没什么大事要宣布的</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9F%A5%E8%AF%86%E7%82%B9%E5%9B%9E%E9%A1%BE"><span class="toc-number">1.</span> <span class="toc-text">知识点回顾</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%90%86%E8%AE%BA%E5%B1%82%E9%9D%A2"><span class="toc-number">1.1.</span> <span class="toc-text">理论层面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E5%B1%82%E9%9D%A2"><span class="toc-number">1.2.</span> <span class="toc-text">代码层面</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="toc-number">2.</span> <span class="toc-text">基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88"><span class="toc-number">2.1.</span> <span class="toc-text">函数指针</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Windows-Api%E7%BC%96%E7%A0%81%E9%97%AE%E9%A2%98"><span class="toc-number">2.2.</span> <span class="toc-text">Windows Api编码问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LoadLibrary%E5%87%BD%E6%95%B0"><span class="toc-number">2.3.</span> <span class="toc-text">LoadLibrary函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GetProcAddress%E5%87%BD%E6%95%B0"><span class="toc-number">2.4.</span> <span class="toc-text">GetProcAddress函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#FreeLibrary%E5%87%BD%E6%95%B0"><span class="toc-number">2.5.</span> <span class="toc-text">FreeLibrary函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="toc-number">2.6.</span> <span class="toc-text">完整代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BE%E4%B8%80%E5%8F%8D%E4%B8%89"><span class="toc-number">3.</span> <span class="toc-text">举一反三</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/26/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8B)/" title="[免杀学习]动态链接库初探(下)">[免杀学习]动态链接库初探(下)</a><time datetime="2023-06-26T04:03:00.000Z" title="发表于 2023-06-26 12:03:00">2023-06-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/25/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8A)/" title="[免杀学习]动态链接库初探(上)">[免杀学习]动态链接库初探(上)</a><time datetime="2023-06-25T07:35:00.000Z" title="发表于 2023-06-25 15:35:00">2023-06-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/20/%5B2023SCTF%5DWEB%20%E5%A4%8D%E7%8E%B0/" title="无题">无题</a><time datetime="2023-06-20T03:10:23.861Z" title="发表于 2023-06-20 11:10:23">2023-06-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/09/%5B2023%E9%99%95%E8%A5%BF%E7%9C%81%E5%A4%A7%E5%AD%A6%E7%94%9F%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E8%B5%9B%5DWEB%E5%A4%8D%E7%8E%B0/" title="[2023陕西省大学生网络安全大赛]WEB复现">[2023陕西省大学生网络安全大赛]WEB复现</a><time datetime="2023-06-09T05:43:00.000Z" title="发表于 2023-06-09 13:43:00">2023-06-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/16/%5B2023AliyunCTF%5DWEB%E9%A2%98%E5%A4%8D%E7%8E%B0/" title="[2023阿里云CTF]ezBean复现及相关fastjson机制深入分析">[2023阿里云CTF]ezBean复现及相关fastjson机制深入分析</a><time datetime="2023-05-16T05:43:00.000Z" title="发表于 2023-05-16 13:43:00">2023-05-16</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/index_img.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 By lanb0</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">欢迎来到lanb0的博客</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script></div></body></html>
