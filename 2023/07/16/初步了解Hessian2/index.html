@@ -1,0 +1,229 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><title>初步了解Hessian2 | Lanb0's blog|一个默默无闻的网安爱好者</title><meta name="author" content="lanb0"><meta name="copyright" content="lanb0"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言:打完SCTF准备复现hellojava，发现之前学的那点链子根本不够用，在学一个新的链子之前，先把它本身了解一下比较好  什么是Hessian2官方解答:  The Hessian binary web service protocol makes web services usable without requiring a large framework, and without le">
+<meta property="og:type" content="article">
+<meta property="og:title" content="初步了解Hessian2">
+<meta property="og:url" content="https://wustzhb.github.io/2023/07/16/%E5%88%9D%E6%AD%A5%E4%BA%86%E8%A7%A3Hessian2/index.html">
+<meta property="og:site_name" content="Lanb0&#39;s blog|一个默默无闻的网安爱好者">
+<meta property="og:description" content="前言:打完SCTF准备复现hellojava，发现之前学的那点链子根本不够用，在学一个新的链子之前，先把它本身了解一下比较好  什么是Hessian2官方解答:  The Hessian binary web service protocol makes web services usable without requiring a large framework, and without le">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wustzhb.github.io/img/head.jpg">
+<meta property="article:published_time" content="2023-07-16T12:43:00.000Z">
+<meta property="article:modified_time" content="2023-07-17T16:55:13.093Z">
+<meta property="article:author" content="lanb0">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="Hessian2">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wustzhb.github.io/img/head.jpg"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://wustzhb.github.io/2023/07/16/%E5%88%9D%E6%AD%A5%E4%BA%86%E8%A7%A3Hessian2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  }
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '初步了解Hessian2',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-07-18 00:55:13'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">30</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/index_img.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Lanb0's blog|一个默默无闻的网安爱好者"><span class="site-name">Lanb0's blog|一个默默无闻的网安爱好者</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">初步了解Hessian2</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-07-16T12:43:00.000Z" title="发表于 2023-07-16 20:43:00">2023-07-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-07-17T16:55:13.093Z" title="更新于 2023-07-18 00:55:13">2023-07-18</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BC%96%E7%A8%8B/">编程</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BC%96%E7%A8%8B/JAVA/">JAVA</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BC%96%E7%A8%8B/JAVA/Hessian2/">Hessian2</a></span></div><div class="meta-secondline"></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>前言:打完SCTF准备复现hellojava，发现之前学的那点链子根本不够用，在学一个新的链子之前，先把它本身了解一下比较好</p>
+</blockquote>
+<h1 id="什么是Hessian2"><a href="#什么是Hessian2" class="headerlink" title="什么是Hessian2"></a>什么是Hessian2</h1><p><a target="_blank" rel="noopener" href="http://hessian.caucho.com/">官方</a>解答:</p>
+<blockquote>
+<p>The Hessian binary web service protocol makes web services usable without requiring a large framework, and without learning yet another alphabet soup of protocols. Because it is a binary protocol, it is well-suited to sending binary data without any need to extend the protocol with attachments.</p>
+</blockquote>
+<p>总结一下,Hessian是一种用于在网络上交换数据和调用远程方法的<strong>二进制</strong>协议，它可以在不同的语言和平台之间实现互操作性。它使用了一种简单而高效的二进制编码格式，可以支持复杂的对象和集合，而不需要额外的元数据或模式定义。Hessian可以作为一个轻量级的替代方案，来代替XML、SOAP或其他基于文本的协议。</p>
+<p><strong>根据“跨平台”，“二进制”等特性，我们可以看出，Hessian在序列化和远程调用方面大有可为，本篇文章就了解一下Hessian在和远程调用和序列化方面的功能</strong></p>
+<h1 id="在JAVA中使用Hessian2"><a href="#在JAVA中使用Hessian2" class="headerlink" title="在JAVA中使用Hessian2"></a>在JAVA中使用Hessian2</h1><h2 id="一-远程过程调用-RPC"><a href="#一-远程过程调用-RPC" class="headerlink" title="一.远程过程调用(RPC)"></a>一.远程过程调用(RPC)</h2><h3 id="服务端Hessian-Service"><a href="#服务端Hessian-Service" class="headerlink" title="服务端Hessian_Service"></a>服务端Hessian_Service</h3><p>在idea中创建一个maven的webapp项目作为RPC的服务端</p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20230717_1.png"></p>
+<p>创建2个包，一个Service服务接口，一个Impl用于实现接口</p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20230717_2.png"></p>
+<p>分别编写接口和实现方法</p>
+<h4 id="HelloService"><a href="#HelloService" class="headerlink" title="HelloService"></a>HelloService</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.zhb.Service;</span><br><span class="line"></span><br><span class="line"><span class="comment">//服务接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">HelloService</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">Hello</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="HelloServiceImpl"><a href="#HelloServiceImpl" class="headerlink" title="HelloServiceImpl"></a>HelloServiceImpl</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.zhb.Impl;</span><br><span class="line"><span class="keyword">import</span> org.zhb.Service.HelloService;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">HelloService</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">HelloServiceImpl</span><span class="params">()</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">Hello</span><span class="params">()</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;hello Lanb0&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>第二步，编辑pom.xml，添加Hessian的第三方组件</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.caucho<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hessian<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">version</span>&gt;</span>4.0.66<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>4.0以上的hessian默认使用Hessian2协议</p>
+</blockquote>
+<p>第三步，找到webapp&#x2F;WEB-INF&#x2F;web.xml,在&lt;web-app&gt;标签里添加如下内容</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>HelloService<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>com.caucho.hessian.server.HessianServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">init-param</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>home-api<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>org.zhb.Service.HelloService<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">init-param</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>home-class<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>org.zhb.Impl.HelloServiceImpl<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>HelloService<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/hello<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">servlet-mapping</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里面具体是什么意思呢，简单说说</p>
+<p>**&lt;servlet&gt;**标签表示定义一个servlet，你可以把他当做一个对象</p>
+<p>**&lt;servlet-name&gt;**子标签相当于给这个servlet起一个名字(唯一性),</p>
+<p>**&lt;servlet-class&gt;**子标签表示这个servlet的实现类是com.caucho.hessian.server.HessianServlet，这个类是Hessian组件提供的一个通用的servlet类，可以处理Hessian协议的请求和响应</p>
+<p><strong>&lt;init-param&gt;<strong>子标签用于指定这个servlet的初始化参数，也就是告诉HessianServlet，你用于提供远程调用的接口和实现类分别是什么,其中</strong>home-api</strong>指定接口，<strong>home-class</strong>指定对应的实现类</p>
+<p><strong>home-api和home-class是固定的命名</strong>，具体原因可以在com.caucho.hessian.server.HessianServlet的init方法中找到</p>
+<img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20230717_3.png" style="zoom: 67%;" />
+
+
+
+<img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20230717_4.png" style="zoom:67%;" />
+
+<p> **&lt;servlet-mapping&gt;**标签就是定义路由和servlet的映射关系，比较好理解</p>
+<p>最后一步，配置tomcat，这里除了tomcat10之外都行，我用的是tomcat8，因为tomcat10把<strong>javax</strong>库改名为<strong>jakarta</strong>，而hessian用到了javax，踩坑踩了好久。。。</p>
+<p>Tomcat需要注意的一点就是<strong>Deployment</strong>下的<strong>Application context</strong>相当于一个根路由，举个例子，如果我把Application context设置为<strong>method</strong>,那么我如果要访问原本的**&#x2F;hello<strong>路由就要改为</strong>&#x2F;method&#x2F;hello**</p>
+<h3 id="客户端Hessian-Client"><a href="#客户端Hessian-Client" class="headerlink" title="客户端Hessian_Client"></a>客户端Hessian_Client</h3><p>客户端就只需要远程调用一下hessian，所以写起来很简单</p>
+<h4 id="创建一个同样的HelloService接口"><a href="#创建一个同样的HelloService接口" class="headerlink" title="创建一个同样的HelloService接口"></a>创建一个同样的HelloService接口</h4><blockquote>
+<p>此处省略</p>
+</blockquote>
+<h4 id="借助Hessian进行RPC调用"><a href="#借助Hessian进行RPC调用" class="headerlink" title="借助Hessian进行RPC调用"></a>借助Hessian进行RPC调用</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> MalformedURLException &#123;</span><br><span class="line"></span><br><span class="line"><span class="type">String</span> <span class="variable">url</span> <span class="operator">=</span><span class="string">&quot;http://localhost:8080/method/hello&quot;</span>;</span><br><span class="line"><span class="comment">//创建Hessian代理工厂类</span></span><br><span class="line"><span class="type">HessianProxyFactory</span> <span class="variable">factory</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HessianProxyFactory</span>();</span><br><span class="line"><span class="comment">//通过代理工厂去进行RPC调用</span></span><br><span class="line"><span class="comment">//这里需要向下转型因为create方法返回的是Object，需要显式转换</span></span><br><span class="line"><span class="type">HelloService</span> <span class="variable">helloService</span> <span class="operator">=</span>(HelloService) factory.create(HelloService.class,url);</span><br><span class="line"><span class="comment">//客户端从服务端接收执行结果</span></span><br><span class="line">helloService.Hello();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>不论是RMI还是RPC，方法的执行过程都是在服务端上运行的，只是最后服务端会把结果通过网络传输给客户端，所以这里的Hello方法打印的”hello lanb0”只会显示在服务端</strong></p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20230717_5.png"></p>
+<blockquote>
+<p>当然，不排除像动态类加载这样的机制还是把二进制代码直接发给客户端的</p>
+</blockquote>
+<h2 id="二-Hessian2的序列化"><a href="#二-Hessian2的序列化" class="headerlink" title="二.Hessian2的序列化"></a>二.Hessian2的序列化</h2><p>直接上代码吧，没啥可赘述的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.example;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.caucho.hessian.io.Hessian2Input;</span><br><span class="line"><span class="keyword">import</span> com.caucho.hessian.io.Hessian2Output;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.ByteArrayInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.Serializable;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="type">Car</span> <span class="variable">car</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Car</span>(<span class="string">&quot;BYD&quot;</span>,<span class="number">99999</span>);</span><br><span class="line">        <span class="type">ByteArrayOutputStream</span> <span class="variable">byteArrayOutputStream</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">        Hessian2Output he=<span class="keyword">new</span> <span class="title class_">Hessian2Output</span>(byteArrayOutputStream);</span><br><span class="line">        <span class="comment">//序列化</span></span><br><span class="line">        he.writeObject(car);</span><br><span class="line">        he.flush();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//将存储在输出流的序列化内容转换为字节数组</span></span><br><span class="line">        <span class="type">byte</span>[] bytes= byteArrayOutputStream.toByteArray();</span><br><span class="line">        <span class="comment">//然后赋值在输入流中</span></span><br><span class="line">        ByteArrayInputStream byteArrayInputStream=<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(bytes);</span><br><span class="line">        <span class="comment">//反序列化</span></span><br><span class="line">        <span class="comment">//Hessian2Input获取输入流的内容，然后将其反序列化</span></span><br><span class="line">        <span class="type">Hessian2Input</span> <span class="variable">hessian2Input</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Hessian2Input</span>(byteArrayInputStream);</span><br><span class="line">        <span class="type">Car</span> <span class="variable">car2</span> <span class="operator">=</span>(Car) hessian2Input.readObject();</span><br><span class="line">        System.out.println(car2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Car</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="keyword">public</span> Integer price;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Car&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;name=&#x27;&quot;</span> + name + <span class="string">&#x27;\&#x27;&#x27;</span> +</span><br><span class="line">                <span class="string">&quot;, price=&quot;</span> + price +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Car</span><span class="params">(String name, Integer price)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">        <span class="built_in">this</span>.price = price;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>flush用于将Hessian2Output对象的输出缓冲区中的数据写入到输出流中。这样可以确保数据被完整地发送到目的地，而不会被留在缓冲区中</p>
+<p>如果不写这行，就会报错：Exception in thread “main” java.io.EOFException: readObject: unexpected end of file</p>
+<p>这是因为你并没有把序列化后的数据写入到输出流</p>
+</blockquote>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Hessian2的初步了解就到这差不多了，后面就开始研究下反序列化的链子吧</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io">lanb0</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io/2023/07/16/%E5%88%9D%E6%AD%A5%E4%BA%86%E8%A7%A3Hessian2/">https://wustzhb.github.io/2023/07/16/%E5%88%9D%E6%AD%A5%E4%BA%86%E8%A7%A3Hessian2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wustzhb.github.io" target="_blank">Lanb0's blog|一个默默无闻的网安爱好者</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%BC%96%E7%A8%8B/">编程</a><a class="post-meta__tags" href="/tags/Hessian2/">Hessian2</a></div><div class="post_share"><div class="social-share" data-image="/img/head.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/07/18/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E6%9D%80%E6%AF%92%E8%BD%AF%E4%BB%B6%E6%89%AB%E6%8F%8F%E6%B5%85%E6%9E%90(%E4%B8%8A)/" title="[免杀学习]杀毒软件扫描浅析(上)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">[免杀学习]杀毒软件扫描浅析(上)</div></div></a></div><div class="next-post pull-right"><a href="/2023/06/28/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5Dshellcode%E7%9A%84%E4%BD%BF%E7%94%A8(C++)/" title="[免杀学习]shellcode的使用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">[免杀学习]shellcode的使用</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/07/18/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E6%9D%80%E6%AF%92%E8%BD%AF%E4%BB%B6%E6%89%AB%E6%8F%8F%E6%B5%85%E6%9E%90(%E4%B8%8A)/" title="[免杀学习]杀毒软件扫描浅析(上)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-18</div><div class="title">[免杀学习]杀毒软件扫描浅析(上)</div></div></a></div><div><a href="/2023/05/10/%5B%E6%B1%87%E7%BC%96%E5%AD%A6%E4%B9%A0%5D-%E6%89%93%E5%8D%B0hello-world/" title="[汇编学习]X64架构下打印hello World"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-10</div><div class="title">[汇编学习]X64架构下打印hello World</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">lanb0</div><div class="author-info__description">充实地过好每一天</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">18</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">30</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="card-info-social-icons is-center"><a class="social-icon" href="https://qm.qq.com/cgi-bin/qm/qr?k=Ga7oV2UM08biI8VudKTeFcEdzYPbbXdz&amp;noverify=0&amp;personal_qrcode_source=4" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">没什么大事要宣布的</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFHessian2"><span class="toc-number">1.</span> <span class="toc-text">什么是Hessian2</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9C%A8JAVA%E4%B8%AD%E4%BD%BF%E7%94%A8Hessian2"><span class="toc-number">2.</span> <span class="toc-text">在JAVA中使用Hessian2</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80-%E8%BF%9C%E7%A8%8B%E8%BF%87%E7%A8%8B%E8%B0%83%E7%94%A8-RPC"><span class="toc-number">2.1.</span> <span class="toc-text">一.远程过程调用(RPC)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AFHessian-Service"><span class="toc-number">2.1.1.</span> <span class="toc-text">服务端Hessian_Service</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#HelloService"><span class="toc-number">2.1.1.1.</span> <span class="toc-text">HelloService</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HelloServiceImpl"><span class="toc-number">2.1.1.2.</span> <span class="toc-text">HelloServiceImpl</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AFHessian-Client"><span class="toc-number">2.1.2.</span> <span class="toc-text">客户端Hessian_Client</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%90%8C%E6%A0%B7%E7%9A%84HelloService%E6%8E%A5%E5%8F%A3"><span class="toc-number">2.1.2.1.</span> <span class="toc-text">创建一个同样的HelloService接口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%80%9F%E5%8A%A9Hessian%E8%BF%9B%E8%A1%8CRPC%E8%B0%83%E7%94%A8"><span class="toc-number">2.1.2.2.</span> <span class="toc-text">借助Hessian进行RPC调用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C-Hessian2%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96"><span class="toc-number">2.2.</span> <span class="toc-text">二.Hessian2的序列化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.3.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/07/18/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E6%9D%80%E6%AF%92%E8%BD%AF%E4%BB%B6%E6%89%AB%E6%8F%8F%E6%B5%85%E6%9E%90(%E4%B8%8A)/" title="[免杀学习]杀毒软件扫描浅析(上)">[免杀学习]杀毒软件扫描浅析(上)</a><time datetime="2023-07-18T14:54:00.000Z" title="发表于 2023-07-18 22:54:00">2023-07-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/07/16/%E5%88%9D%E6%AD%A5%E4%BA%86%E8%A7%A3Hessian2/" title="初步了解Hessian2">初步了解Hessian2</a><time datetime="2023-07-16T12:43:00.000Z" title="发表于 2023-07-16 20:43:00">2023-07-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/28/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5Dshellcode%E7%9A%84%E4%BD%BF%E7%94%A8(C++)/" title="[免杀学习]shellcode的使用">[免杀学习]shellcode的使用</a><time datetime="2023-06-28T05:43:00.000Z" title="发表于 2023-06-28 13:43:00">2023-06-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/26/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8B)/" title="[免杀学习]动态链接库初探(下)">[免杀学习]动态链接库初探(下)</a><time datetime="2023-06-26T04:03:00.000Z" title="发表于 2023-06-26 12:03:00">2023-06-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/25/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8A)/" title="[免杀学习]动态链接库初探(上)">[免杀学习]动态链接库初探(上)</a><time datetime="2023-06-25T07:35:00.000Z" title="发表于 2023-06-25 15:35:00">2023-06-25</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/index_img.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 By lanb0</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">欢迎来到lanb0的博客</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script></div></body></html>
