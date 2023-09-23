@@ -1,0 +1,889 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><title>PE结构分析 | Lanb0's blog|一个默默无闻的网安爱好者</title><meta name="author" content="lanb0"><meta name="copyright" content="lanb0"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="引言Windows 的 PE 文件结构是一种可执行文件格式，用于存储 Windows 应用程序、服务和驱动程序。 准备一个简单的程序以32位为主，在后面会展示与64位的区别 123456789101112&#x2F;&#x2F;没有使用到的库仅用于展示PE结构的某些变化#include &lt;iostream&gt;#include &lt;stdio.h&gt;#pragma comment(lib,&quot;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PE结构分析">
+<meta property="og:url" content="https://wustzhb.github.io/2023/09/02/PE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/index.html">
+<meta property="og:site_name" content="Lanb0&#39;s blog|一个默默无闻的网安爱好者">
+<meta property="og:description" content="引言Windows 的 PE 文件结构是一种可执行文件格式，用于存储 Windows 应用程序、服务和驱动程序。 准备一个简单的程序以32位为主，在后面会展示与64位的区别 123456789101112&#x2F;&#x2F;没有使用到的库仅用于展示PE结构的某些变化#include &lt;iostream&gt;#include &lt;stdio.h&gt;#pragma comment(lib,&quot;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wustzhb.github.io/img/head.jpg">
+<meta property="article:published_time" content="2023-09-02T04:32:00.000Z">
+<meta property="article:modified_time" content="2023-09-04T17:33:02.796Z">
+<meta property="article:author" content="lanb0">
+<meta property="article:tag" content="PE文件">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wustzhb.github.io/img/head.jpg"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://wustzhb.github.io/2023/09/02/PE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  }
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PE结构分析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-09-05 01:33:02'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/index_img.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Lanb0's blog|一个默默无闻的网安爱好者"><span class="site-name">Lanb0's blog|一个默默无闻的网安爱好者</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">PE结构分析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-09-02T04:32:00.000Z" title="发表于 2023-09-02 12:32:00">2023-09-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-09-04T17:33:02.796Z" title="更新于 2023-09-05 01:33:02">2023-09-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/PE%E6%96%87%E4%BB%B6/">PE文件</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/PE%E6%96%87%E4%BB%B6/PE%E7%BB%93%E6%9E%84/">PE结构</a></span></div><div class="meta-secondline"></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>Windows 的 PE 文件结构是一种可执行文件格式，用于存储 Windows 应用程序、服务和驱动程序。</p>
+<h1 id="准备一个简单的程序"><a href="#准备一个简单的程序" class="headerlink" title="准备一个简单的程序"></a>准备一个简单的程序</h1><p>以32位为主，在后面会展示与64位的区别</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//没有使用到的库仅用于展示PE结构的某些变化</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> comment(lib,<span class="string">&quot;WS2_32.lib&quot;</span>) </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> flag = <span class="number">1</span>;</span><br><span class="line">    flag++;</span><br><span class="line">	cout &lt;&lt; flag &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="结构体系"><a href="#结构体系" class="headerlink" title="结构体系"></a>结构体系</h1><p>PE 文件结构主要由以下几部分组成：</p>
+<h2 id="DOS-头"><a href="#DOS-头" class="headerlink" title="DOS 头"></a>DOS 头</h2><p>存储一些文件信息,如NT头的位置，主要用来兼容MS-DOS操作系统，目的是当这个文件在MS-DOS系统上运行时提示一段文字，大部分情况下是：<code>This program cannot be run in DOS mode</code>. </p>
+<h2 id="NT头"><a href="#NT头" class="headerlink" title="NT头"></a>NT头</h2><p>存储PE文件的主要信息</p>
+<h2 id="节头"><a href="#节头" class="headerlink" title="节头"></a>节头</h2><p>描述PE文件中各个节的名称，位置和属性。</p>
+<h2 id="节"><a href="#节" class="headerlink" title="节"></a>节</h2><blockquote>
+<p>部分不太重要的字段本文会省略</p>
+</blockquote>
+<p>节是PE文件中存储代码和数据的部分，每个节都有一个名称和一些属性。不同的节担任着不同的存储任务。</p>
+<table>
+<thead>
+<tr>
+<th align="left">节名</th>
+<th align="left">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">.text</td>
+<td align="left">代码段，存放程序执行代码，只读和可执行</td>
+</tr>
+<tr>
+<td align="left">.data</td>
+<td align="left">数据段，存放程序中已初始化的全局变量和静态变量，可读和可写</td>
+</tr>
+<tr>
+<td align="left">.bss</td>
+<td align="left">BSS段，存放程序中未初始化的全局变量和静态变量，可读和可写</td>
+</tr>
+<tr>
+<td align="left">.rdata</td>
+<td align="left">只读数据段，存放常量数据，如字符串常量、调试信息等，只读</td>
+</tr>
+<tr>
+<td align="left">.idata</td>
+<td align="left">导入数据段，存放导入函数的信息</td>
+</tr>
+<tr>
+<td align="left">.edata</td>
+<td align="left">导出数据段，存放导出函数的信息</td>
+</tr>
+<tr>
+<td align="left">.reloc</td>
+<td align="left">重定位数据段，存放重定位项的信息，用于在加载时修正内存地址，可读和可写</td>
+</tr>
+<tr>
+<td align="left">.rsrc</td>
+<td align="left">资源数据段，存放资源数据，如图标、菜单、对话框等，可读和可写</td>
+</tr>
+</tbody></table>
+<h2 id="特殊节"><a href="#特殊节" class="headerlink" title="特殊节"></a>特殊节</h2><p>有一些节是Visual Studio在Debug模式下使用的特殊的节，它不是PE文件结构中的标准部分。</p>
+<h3 id="textbss"><a href="#textbss" class="headerlink" title=".textbss"></a>.textbss</h3><p>.textbss节为了支持Visual Studio在调试过程中动态编译和更新代码的功能(“编辑并继续”功能)。</p>
+<p>当你在Debug模式下修改了代码，Visual Studio会将被修改的函数放到.textbss节里，然后修改对应的ILT表项(增量同步表)，使它指向这个位置</p>
+<p>.textbss节有以下几个特点</p>
+<ul>
+<li>它是未初始化的可执行代码节，也就是说，它具有可执行属性，在PE文件中不占用硬盘文件空间，在加载到内存时不填充数据。</li>
+<li>它是在.text节之后的一个额外的节，它的大小和位置是由Visual Studio动态分配和调整的。</li>
+<li>它只在Debug模式下有效，Release模式下默认禁用Incremental Linking，所以不会生成这个节。</li>
+</ul>
+<h3 id="msvcjmc"><a href="#msvcjmc" class="headerlink" title=".msvcjmc"></a>.msvcjmc</h3><p>.msvcjmc节是一个用于存储调试信息的节，它是由Visual Studio在Debug模式下生成的。</p>
+<p>它包含了一些用于支持“编辑并继续”功能的符号，比如函数的入口点、返回地址等。</p>
+<p>这个功能可以让你在调试过程中修改代码，并且不需要重新链接程序。</p>
+<blockquote>
+<p>在Release模式下，这个节通常会被删除或合并到其他节中。</p>
+</blockquote>
+<h3 id="00cfg"><a href="#00cfg" class="headerlink" title=".00cfg"></a>.00cfg</h3><p>.00cfg节是一个用于存储控制流保护（Control Flow Guard）相关信息的节，它也是由Visual Studio生成的。</p>
+<p>控制流保护是一种用于防止缓冲区溢出攻击的技术，它可以检查间接调用的目标是否有效。</p>
+<p>.00cfg节中包含了一些指向检查函数的指针。</p>
+<h1 id="全面梳理"><a href="#全面梳理" class="headerlink" title="全面梳理"></a>全面梳理</h1><p>以010Editor的EXE模板为基准</p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20230903_1.png"></p>
+<h2 id="struct-IMAGE-DOS-HEADER-DosHeader"><a href="#struct-IMAGE-DOS-HEADER-DosHeader" class="headerlink" title="struct IMAGE_DOS_HEADER DosHeader"></a>struct IMAGE_DOS_HEADER DosHeader</h2><table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">MZSignature</td>
+<td>标识符，用来表示这是一个可执行文件，它的值必须为<code>0x5A4D</code>，即<code>MZ</code>的ASCII码</td>
+</tr>
+<tr>
+<td align="center">AddressOfNewExeHeader</td>
+<td>偏移量，表示PE头部在文件中的位置</td>
+</tr>
+</tbody></table>
+<h2 id="struct-IMAGE-DOS-STUB-DosStub"><a href="#struct-IMAGE-DOS-STUB-DosStub" class="headerlink" title="struct IMAGE_DOS_STUB DosStub"></a>struct IMAGE_DOS_STUB DosStub</h2><table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Data[64]</td>
+<td>在DOS系统(16位)运行时，用于提示<code>This program cannot be run in DOS mode</code></td>
+</tr>
+<tr>
+<td align="center">RichHeader</td>
+<td>富头部，包含了PE文件编译和链接时使用的链接库和链接器的信息，例如产品ID、版本号和计数器</td>
+</tr>
+</tbody></table>
+<h2 id="struct-IMAGE-NT-HEADERS-NtHeader"><a href="#struct-IMAGE-NT-HEADERS-NtHeader" class="headerlink" title="struct IMAGE_NT_HEADERS NtHeader"></a>struct IMAGE_NT_HEADERS NtHeader</h2><table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Signature</td>
+<td>PE文件的有效签名，其值为”P E \0 \0”</td>
+</tr>
+<tr>
+<td align="center">FileHeader</td>
+<td>文件头信息,存储了文件的创建时间,可运行的CPU平台,可选头大小等信息</td>
+</tr>
+<tr>
+<td align="center">OptionalHeader</td>
+<td>可选头信息</td>
+</tr>
+</tbody></table>
+<h3 id="struct-IMAGE-FILE-HEADER-FileHeader"><a href="#struct-IMAGE-FILE-HEADER-FileHeader" class="headerlink" title="struct IMAGE_FILE_HEADER FileHeader"></a>struct IMAGE_FILE_HEADER FileHeader</h3><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Machine</td>
+<td>运行平台，比如x86,x64,Arm</td>
+<td></td>
+</tr>
+<tr>
+<td>NumberOfSections</td>
+<td>PE文件中节的数量</td>
+<td></td>
+</tr>
+<tr>
+<td>TimeDateStamp</td>
+<td>PE文件的创建时间,以秒为单位的时间戳(from 01&#x2F;01&#x2F;1970 12:00 AM)</td>
+<td></td>
+</tr>
+<tr>
+<td>PointerToSymbolTable</td>
+<td>表示PE文件中符号表的偏移量。</td>
+<td></td>
+</tr>
+<tr>
+<td>NumberOfSymbols</td>
+<td>PE文件中符号表中符号的数量</td>
+<td></td>
+</tr>
+<tr>
+<td>SizeOfOptionalHeader</td>
+<td>表示OptionalHeader可选头的大小</td>
+<td></td>
+</tr>
+<tr>
+<td>Characteristics</td>
+<td>PE文件的一些特征信息</td>
+<td></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>符号表是一种用于语言翻译器（例如编译器和解释器）中的数据结构。在符号表中，程序源代码中的每个标识符都和它的声明或使用信息绑定在一起，比如其数据类型、作用域以及内存地址。符号表可以帮助编译器检查语法错误，分配内存空间，生成目标代码等</p>
+<p>注意:局部变量在栈中存储，所以局部变量并不会生成对应的符号</p>
+</blockquote>
+<h4 id="struct-FILE-CHARACTERISTICS-Characteristics"><a href="#struct-FILE-CHARACTERISTICS-Characteristics" class="headerlink" title="struct FILE_CHARACTERISTICS Characteristics"></a>struct FILE_CHARACTERISTICS Characteristics</h4><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IMAGE_FILE_RELOCS_STRIPPED</td>
+<td>如果这个位为1，表示重定位信息被删除，这样文件就只能被加载到指定的地址。这通常用于系统文件或驱动程序</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_EXECUTABLE_IMAGE</td>
+<td>如果这个位为1，表示文件是可执行的</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_LINE_NUMS_STRIPPED</td>
+<td>如果这个位为1，表示文件的行号信息被删除，这样可以减少文件的大小</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_LOCAL_SYMS_STRIPPED</td>
+<td>如果这个位为1，表示本地符号表和字符串表被删除，这样也可以减小文件的大小</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_AGGRESIVE_WS_TRIM</td>
+<td>如果这个位为1，表示操作系统可以回收工作集中未使用的内存页。</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_LARGE_ADDRESS_AWARE</td>
+<td>如果这个位为1，表示应用程序可以处理大于2GB的地址空间</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_BYTES_REVERSED_LO</td>
+<td>已弃用</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_32BIT_MACHINE</td>
+<td>如果这个位为1，表示文件是32位的机器码</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_DEBUG_STRIPPED</td>
+<td>如果这个位为1，表示调试信息被单独存放在.DBG文件中</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP</td>
+<td>如果这个位为1，表示如果文件在可移动介质上（如软盘或光盘），则在运行时将其复制到交换文件中</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_SYSTEM</td>
+<td>如果这个位为1，表示文件是系统文件，如驱动程序或动态链接库</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_DLL</td>
+<td>如果这个位为1，表示文件是动态链接库（DLL）</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_UP_SYSTEM_ONLY</td>
+<td>如果这个位为1，表示文件只能在单处理器机器上运行</td>
+</tr>
+<tr>
+<td>IMAGE_FILE_BYTES_REVERSED_HI</td>
+<td>已弃用</td>
+</tr>
+</tbody></table>
+<h3 id="struct-IMAGE-OPTIONAL-HEADER32-OptionalHeader"><a href="#struct-IMAGE-OPTIONAL-HEADER32-OptionalHeader" class="headerlink" title="struct IMAGE_OPTIONAL_HEADER32 OptionalHeader"></a>struct IMAGE_OPTIONAL_HEADER32 OptionalHeader</h3><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Magic</td>
+<td>标识PE文件的类型。常见的值有010Bh（普通可执行文件）和020Bh（64位可执行文件）。</td>
+</tr>
+<tr>
+<td>MajorLinkerVersion</td>
+<td>表示链接器的主版本号，表示生成PE文件的编译器或工具的版本。</td>
+</tr>
+<tr>
+<td>MinorLinkerVersion</td>
+<td>表示链接器的次版本号</td>
+</tr>
+<tr>
+<td>SizeOfCode</td>
+<td>表示所有含代码的节的总大小，以字节为单位。</td>
+</tr>
+<tr>
+<td>SizeOfInitializedData</td>
+<td>表示所有含已初始化数据的节的总大小，以字节为单位。</td>
+</tr>
+<tr>
+<td>SizeOfUninitializedData</td>
+<td>表示所有含未初始化数据的节的总大小，以字节为单位。</td>
+</tr>
+<tr>
+<td>AddressOfEntryPoint</td>
+<td>程序执行入口的相对虚拟地址（RVA），表示程序开始执行时跳转到的内存地址。它需要加上基址才能得到真正的虚拟地址（VA）。</td>
+</tr>
+<tr>
+<td>BaseOfCode</td>
+<td>代码节的起始RVA，表示代码节在内存中的相对位置。</td>
+</tr>
+<tr>
+<td>BaseOfData</td>
+<td>数据节的起始RVA，表示数据节在内存中的相对位置。</td>
+</tr>
+<tr>
+<td>ImageBase</td>
+<td>程序的首选装载地址，表示程序希望被加载到内存中的哪个位置。如果该位置已经被占用或者开启了ASLR，系统会重新分配一个基址，并进行重定位。</td>
+</tr>
+<tr>
+<td>SectionAlignment</td>
+<td>内存中的节对齐大小，表示每个节在内存中占用的空间必须是该值的整数倍。</td>
+</tr>
+<tr>
+<td>FileAlignment</td>
+<td>文件中的节对齐大小，表示每个节在文件中占用的空间必须是该值的整数倍。</td>
+</tr>
+<tr>
+<td>MajorOperatingSystemVersion</td>
+<td>要求操作系统最低版本号的主版本号，表示程序需要运行在哪个版本以上的操作系统上。</td>
+</tr>
+<tr>
+<td>MinorOperatingSystemVersion</td>
+<td>要求操作系统最低版本号的次版本号</td>
+</tr>
+<tr>
+<td>MajorImageVersion</td>
+<td>程序自身的主版本号，表示程序开发者给出的版本信息。</td>
+</tr>
+<tr>
+<td>MinorImageVersion</td>
+<td>程序自身的次版本号。</td>
+</tr>
+<tr>
+<td>MajorSubsystemVersion</td>
+<td>要求最低子系统的主版本号，表示程序需要运行在哪个子系统（如控制台、图形界面等）上，并且该子系统至少要达到哪个版本。</td>
+</tr>
+<tr>
+<td>MinorSubsystemVersion</td>
+<td>要求最低子系统的次版本号</td>
+</tr>
+<tr>
+<td>Win32VersionValue</td>
+<td>保留字段，无意义</td>
+</tr>
+<tr>
+<td>SizeOfImage</td>
+<td>装入内存后的总大小，以字节为单位。它包括了所有头部、所有节、以及内存对齐产生的空洞。</td>
+</tr>
+<tr>
+<td>SizeOfHeaders</td>
+<td>所有头部和节表占用的大小，以字节为单位。它通常等于第一个节在文件中的偏移量。</td>
+</tr>
+<tr>
+<td>CheckSum</td>
+<td>校验和，用于检测PE文件是否被修改或损坏。</td>
+</tr>
+<tr>
+<td>Subsystem</td>
+<td>指定可执行文件期望的子系统。常见的值有1（本机）、2（Windows图形界面）、3（Windows控制台）、5（OS&#x2F;2控制台）、7（POSIX控制台）等。</td>
+</tr>
+<tr>
+<td>DllCharacteristics</td>
+<td>这是一个结构体，用来表示DLL文件的一些特性，比如是否支持安全检查、是否可以动态基址、是否可以终止进程等。每个特性用一个位来表示，为1表示启用，为0表示禁用。</td>
+</tr>
+<tr>
+<td>SizeOfStackReserve</td>
+<td>初始化时保留的栈大小，以字节为单位。栈是用来存储函数调用、局部变量、参数等临时数据的内存区域。</td>
+</tr>
+<tr>
+<td>SizeOfStackCommit</td>
+<td>初始化时实际提交的栈大小，以字节为单位。提交的内存是已经分配并可以使用的内存，而保留的内存只是预留了一个地址空间，还没有实际分配。</td>
+</tr>
+<tr>
+<td>SizeOfHeapReserve</td>
+<td>初始化时保留的堆大小，以字节为单位。堆是用来存储动态分配的内存数据的内存区域。</td>
+</tr>
+<tr>
+<td>SizeOfHeapCommit</td>
+<td>初始化时实际提交的堆大小，以字节为单位。同上。</td>
+</tr>
+<tr>
+<td>NumberOfRvaAndSizes</td>
+<td>数据目录表的项数，表示有多少个数据目录项。这个字段自Windows NT发布以来一直是16。</td>
+</tr>
+<tr>
+<td>DataDirArray</td>
+<td>这是一个结构体数组，用来存储数据目录表的信息。数据目录表是用来描述PE文件中一些特殊数据的位置和大小，比如导入表、导出表、资源表、重定位表等。每个结构体包含两个字段：一个是数据的RVA，另一个是数据的大小。</td>
+</tr>
+</tbody></table>
+<h4 id="struct-DLL-CHARACTERISTICS-DllCharacteristics"><a href="#struct-DLL-CHARACTERISTICS-DllCharacteristics" class="headerlink" title="struct DLL_CHARACTERISTICS DllCharacteristics"></a>struct DLL_CHARACTERISTICS DllCharacteristics</h4><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IMAGE_LIBRARY_PROCESS_INIT</td>
+<td>表示DLL是否有一个初始化函数，当进程加载DLL时会被调用。如果为1，表示有这样的函数</td>
+</tr>
+<tr>
+<td>IMAGE_LIBRARY_PROCESS_TERM</td>
+<td>表示DLL是否有一个终止函数，当进程卸载DLL时会被调用。如果为1，表示有这样的函数</td>
+</tr>
+<tr>
+<td>IMAGE_LIBRARY_THREAD_INIT</td>
+<td>表示DLL是否有一个线程初始化函数，当进程创建新线程时会被调用。如果为1，表示有这样的函数</td>
+</tr>
+<tr>
+<td>IMAGE_LIBRARY_THREAD_TERM</td>
+<td>表示DLL是否有一个线程终止函数，当进程销毁线程时会被调用。如果为1，表示有这样的函数</td>
+</tr>
+<tr>
+<td>IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE</td>
+<td>这个字段表示DLL是否支持动态基址，也就是说是否可以被加载到不同的内存地址，并进行重定位。如果为1，表示支持动态基址</td>
+</tr>
+<tr>
+<td>IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY</td>
+<td>这个字段表示DLL是否强制进行完整性检查），也就是说是否要求系统验证DLL的数字签名和校验和。如果为1，表示强制进行完整性检查。强制进行完整性检查可以防止DLL被篡改或损坏。</td>
+</tr>
+<tr>
+<td>IMAGE_DLLCHARACTERISTICS_NX_COMPAT</td>
+<td>这个字段表示DLL是否兼容数据执行保护，也就是说是否要求系统禁止在非可执行内存区域执行代码。如果为1，表示兼容数据执行保护。兼容数据执行保护可以防止缓冲区溢出攻击。</td>
+</tr>
+<tr>
+<td>IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE</td>
+<td>这个字段表示DLL是否支持终端服务，也就是说是否能够在多用户环境下正确地工作。如果为1，表示支持终端服务。终端服务是一种机制，可以让多个用户远程访问同一台服务器。</td>
+</tr>
+</tbody></table>
+<h4 id="struct-IMAGE-DATA-DIRECTORY-ARRAY-DataDirArray"><a href="#struct-IMAGE-DATA-DIRECTORY-ARRAY-DataDirArray" class="headerlink" title="struct IMAGE_DATA_DIRECTORY_ARRAY DataDirArray"></a>struct IMAGE_DATA_DIRECTORY_ARRAY DataDirArray</h4><blockquote>
+<p>以导入表为例，其他表同理</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>struct IMAGE_DATA_DIRECTORY Import</td>
+<td>存储导入表的数据信息</td>
+</tr>
+</tbody></table>
+<h5 id="struct-IMAGE-DATA-DIRECTORY-Import"><a href="#struct-IMAGE-DATA-DIRECTORY-Import" class="headerlink" title="struct IMAGE_DATA_DIRECTORY Import"></a>struct IMAGE_DATA_DIRECTORY Import</h5><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VirtualAddress</td>
+<td>该节表的相对虚拟地址RVA</td>
+</tr>
+<tr>
+<td>Size</td>
+<td>该节表的大小</td>
+</tr>
+</tbody></table>
+<h2 id="struct-IMAGE-SECTION-HEADER-SectionHeaders"><a href="#struct-IMAGE-SECTION-HEADER-SectionHeaders" class="headerlink" title="struct IMAGE_SECTION_HEADER SectionHeaders"></a>struct IMAGE_SECTION_HEADER SectionHeaders</h2><blockquote>
+<p>以.text节为例，其他节同理</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>struct IMAGE_SECTION_HEADER SectionHeaders[0]</td>
+<td>存储.text节头的信息</td>
+</tr>
+</tbody></table>
+<h3 id="struct-IMAGE-SECTION-HEADER-SectionHeaders-0"><a href="#struct-IMAGE-SECTION-HEADER-SectionHeaders-0" class="headerlink" title="struct IMAGE_SECTION_HEADER SectionHeaders[0]"></a>struct IMAGE_SECTION_HEADER SectionHeaders[0]</h3><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Name[8]</td>
+<td>节名称</td>
+</tr>
+<tr>
+<td>Misc</td>
+<td>这是一个联合体，有两个成员：一个是<code>DWORD PhysicalAddress</code>，表示节在内存中的物理地址；另一个是<code>DWORD VirtualSize</code>，表示节在内存中占用的字节数。通常使用后者。</td>
+</tr>
+<tr>
+<td>VirtualAddress</td>
+<td>节表的RVA</td>
+</tr>
+<tr>
+<td>SizeOfRawDat</td>
+<td>节在文件中占用的字节数。它必须是文件中的节对齐大小（FileAlignment）的整数倍。</td>
+</tr>
+<tr>
+<td>PointerToRawData</td>
+<td>这是一个文件偏移地址（FOA），表示节在文件中的偏移量。</td>
+</tr>
+<tr>
+<td>PointerToRelocations</td>
+<td>这是一个FOA，表示重定位表在文件中的偏移量。重定位表是一种数据结构，用来描述程序在被加载到不同地址时需要修改哪些内存位置。</td>
+</tr>
+<tr>
+<td>PointerToLinenumbers</td>
+<td>这是一个FOA，表示行号表在文件中的偏移量。行号表是一种数据结构，用来描述程序中每条指令对应源代码中的哪一行。</td>
+</tr>
+<tr>
+<td>NumberOfRelocations</td>
+<td>表示重定位表的长度，也就是有多少个重定位项。已弃用</td>
+</tr>
+<tr>
+<td>NumberOfLinenumbers</td>
+<td>表示行号表的长度，也就是有多少个行号项。已弃用</td>
+</tr>
+<tr>
+<td>Characteristics</td>
+<td>节表的特征信息</td>
+</tr>
+</tbody></table>
+<h4 id="struct-SECTION-CHARACTERISTICS-Characteristics"><a href="#struct-SECTION-CHARACTERISTICS-Characteristics" class="headerlink" title="struct SECTION_CHARACTERISTICS Characteristics"></a>struct SECTION_CHARACTERISTICS Characteristics</h4><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IMAGE_SCN_TYPE_NO_PAD</td>
+<td>该节不需要填充字节(文件大小和内存大小相同)，现已废弃</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_CNT_CODE</td>
+<td>该节包含可执行代码</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_CNT_INITIALIZED_DATA</td>
+<td>该节包含已初始化的数据</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_CNT_UNINITIALIZED_DATA</td>
+<td>该节包含未始化的数据</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_LNK_OTHER</td>
+<td>保留字段</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_LNK_INFO</td>
+<td>该节包含注释或其他类型的信息</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_LNK_REMOVE</td>
+<td>该节不会被加载到内存中</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_LNK_COMDAT</td>
+<td>包含comdat数据</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_GPREL</td>
+<td>表示该节包含全局指针相对地址的数据</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_MEM_16BIT</td>
+<td>表示该节只能在16位环境下运行,比如DOS系统</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_MEM_LOCKED</td>
+<td>表示该节被锁定在内存中，不会被交换出去。这意味着该节包含了一些重要的或者敏感的数据，不能被写入到磁盘或者其他设备上。</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_MEM_PRELOAD</td>
+<td>表示该节在程序启动时被预加载到内存中。这意味着该节包含了一些程序运行时必须的或者经常使用的数据，为了提高程序的性能，它们会在程序开始执行之前就被加载到内存中</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_ALIGN_1BYTES</td>
+<td>表示该节在内存中按照1字节对齐，也就是说，该节的起始地址和大小可以是任意值，不受限制</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_ALIGN_2BYTES</td>
+<td>表示该节在内存中按照2字节对齐，也就是说，该节的起始地址和大小必须是2的整数倍，后面的8BYTES,128BYTES同理</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_LNK_NRELOC_OVFL</td>
+<td>表示该节包含超过65,535个重定位项的扩展重定位信息。</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_MEM_DISCARDABLE</td>
+<td>表示该节可以被丢弃或合并。这意味着该节包含了一些不重要的或者可选的数据。</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_MEM_NOT_CACHED</td>
+<td>表示该节不能被缓存。这意味着该节包含了一些对时效性要求高的或者不可预测的数据，比如实时输入或者输出的数据。</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_MEM_NOT_PAGED</td>
+<td>表示该节不能被分页。这意味着该节包含了一些对内存地址要求固定的或者不可移动的数据，比如中断处理程序或者驱动程序。</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_MEM_SHARED</td>
+<td>表示该节可以被多个进程共享。这意味着该节包含了一些公共的或者只读的数据，比如常量或者字符串。如果多个进程加载了同一个PE文件，那么它们可以共享这些节的内存空间，而不需要为每个进程分配独立的内存空间。这样可以节省内存资源，提高程序的效率。</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_MEM_EXECUTE</td>
+<td>表示该节可以被执行。这意味着该节包含了一些可执行的代码，比如函数或者指令。操作系统会把这些节加载到内存中，并且给它们分配执行权限，这样程序就可以调用这些代码来完成一些任务。</td>
+</tr>
+<tr>
+<td>IMAGE_SCN_MEM_READ</td>
+<td>表示该节可以被读取。这意味着该节包含了一些可读的数据，比如常量或者字符串。操作系统会把这些节加载到内存中，并且给它们分配读取权限，这样程序就可以从这些数据中获取信息。</td>
+</tr>
+<tr>
+<td>ULONG IMAGE_SCN_MEM_WRITE</td>
+<td>表示该节可以被写入。这意味着该节包含了一些可写的数据，比如变量或者缓冲区。操作系统会把这些节加载到内存中，并且给它们分配写入权限，这样程序就可以向这些数据中存储信息。</td>
+</tr>
+</tbody></table>
+<h2 id="struct-IMAGE-SECTION-DATA-Section-0"><a href="#struct-IMAGE-SECTION-DATA-Section-0" class="headerlink" title="struct IMAGE_SECTION_DATA Section[0]"></a>struct IMAGE_SECTION_DATA Section[0]</h2><p>各个节的具体内容</p>
+<h2 id="struct-IMAGE-IMPORT-DESCRIPTOR-ImportDescriptor-0"><a href="#struct-IMAGE-IMPORT-DESCRIPTOR-ImportDescriptor-0" class="headerlink" title="struct IMAGE_IMPORT_DESCRIPTOR ImportDescriptor[0]"></a>struct IMAGE_IMPORT_DESCRIPTOR ImportDescriptor[0]</h2><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Characteristics</td>
+<td>0表示导入表的结束，也可以存储其他一些标志，但是不会被系统使用，所以没什么意义</td>
+</tr>
+<tr>
+<td>OriginalFirstThunk</td>
+<td>RVA,指向一个导入名称表INT</td>
+</tr>
+<tr>
+<td>TimeDateStamp</td>
+<td>表示DLL被绑定到本模块的时间戳，如果该PE文件还没有绑定，则为0。绑定是一种优化技术，可以在编译时确定导入函数或变量的实际地址，从而加快加载速度。</td>
+</tr>
+<tr>
+<td>ForwarderChain</td>
+<td>个变量用来表示转发链的索引，如果它是-1，那么说明没有转发链。转发链是一种机制，可以让一个导入符号指向另一个DLL中的符号，而不是原本导入的DLL中的符号。这样可以实现一些重定向或者封装的功能。</td>
+</tr>
+<tr>
+<td>Name</td>
+<td>一个RVA，指向一个字符串，表示导入DLL的名称</td>
+</tr>
+<tr>
+<td>FirstThunk</td>
+<td>RVA,指向一个导入地址表IAT</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>在PE没有被加载到内存时，IAT和INT指向的是同一张表</p>
+<p>在PE文件被加载到内存中后，IAT表中的内容被替换为函数的入口地址</p>
+<p>换句话说，IAT和INT表一样的，只是用途以及用法不同</p>
+</blockquote>
+<h3 id="struct-IMAGE-IMPORT-BY-NAME-ImportByName-0"><a href="#struct-IMAGE-IMPORT-BY-NAME-ImportByName-0" class="headerlink" title="struct IMAGE_IMPORT_BY_NAME ImportByName[0]"></a>struct IMAGE_IMPORT_BY_NAME ImportByName[0]</h3><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hint</td>
+<td>一个16位的数字，它是导入DLL中符号的序号（ordinal）。提示可以帮助加载器快速地定位到导入符号的地址，而不需要遍历整个导出表（export table）。</td>
+</tr>
+<tr>
+<td>Name</td>
+<td>表示导入符号的名称。名称是一个以空字符结尾的ASCII字符串，它是导入DLL中符号的标识符。名称可以用来在导出表中查找到导入符号的序号和地址。</td>
+</tr>
+</tbody></table>
+<h2 id="struct-RESOURCE-DIRECTORY-TABLE-ResourceDirectoryTable"><a href="#struct-RESOURCE-DIRECTORY-TABLE-ResourceDirectoryTable" class="headerlink" title="struct RESOURCE_DIRECTORY_TABLE ResourceDirectoryTable"></a>struct RESOURCE_DIRECTORY_TABLE ResourceDirectoryTable</h2><blockquote>
+<p>资源目录表（Resource Directory Table），它用来存储PE文件中的资源数据，比如图标，光标，字符串，菜单等</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Characteristics</td>
+<td>保留字段，目前为0</td>
+</tr>
+<tr>
+<td>TimeDateStamp</td>
+<td>资源目录表创建的时间戳</td>
+</tr>
+<tr>
+<td>MajorVersion</td>
+<td>资源目录表的主版本号</td>
+</tr>
+<tr>
+<td>MinorVersion</td>
+<td>资源目录表的副版本号</td>
+</tr>
+<tr>
+<td>NumberOfNameEntries</td>
+<td>资源目录表中以名称作为标识符的资源项的数量</td>
+</tr>
+<tr>
+<td>NumberOfIDEntries</td>
+<td>资源目录表中以ID作为标识符的资源项的数量</td>
+</tr>
+<tr>
+<td>struct RESOURCE_DIRECTORY_ENTRY IDEntries</td>
+<td>资源目录项数组，每个项指向一个资源目录或者一个资源数据。(省略)</td>
+</tr>
+</tbody></table>
+<h2 id="struct-BASE-RELOCATION-TABLE-RelocTable"><a href="#struct-BASE-RELOCATION-TABLE-RelocTable" class="headerlink" title="struct BASE_RELOCATION_TABLE RelocTable"></a>struct BASE_RELOCATION_TABLE RelocTable</h2><blockquote>
+<p>重定位表（Relocation Table），它用来存储PE文件中的重定位数据。</p>
+<p>重定位表的作用是在程序加载到内存中时，进行内存地址的修正。因为PE文件可能会被加载到不同的基址，而其中一些指令或数据是根据基址固定的，所以需要根据实际加载的基址和默认的基址之差来调整这些指令或数据的值。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>struct IMAGE_BASE_RELOCATION BaseReloc[0]</td>
+<td>一个重定位块的结构体，它有两个成员变量和一个变长数组。</td>
+</tr>
+</tbody></table>
+<h3 id="struct-IMAGE-BASE-RELOCATION-BaseReloc-0"><a href="#struct-IMAGE-BASE-RELOCATION-BaseReloc-0" class="headerlink" title="struct IMAGE_BASE_RELOCATION BaseReloc[0]"></a>struct IMAGE_BASE_RELOCATION BaseReloc[0]</h3><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VirtualAddress</td>
+<td>当前页面起始地址的RVA值，本块中所有重定位项中的偏移量加上这个起始地址后就得到了真正的RVA值。</td>
+</tr>
+<tr>
+<td>SizeOfBlock</td>
+<td>当前重定位块的大小，从这个字段的值可以算出块中重定位项的数量</td>
+</tr>
+<tr>
+<td>Block[38]</td>
+<td>一个变长数组，每个元素是一个16位的数据，其中低12位是需要重定位的数据在页面中的偏移量，高4位是描述当前重定位项的类型。虽然高4位定义了多种重定位项的属性，但实际上在PE文件中只能看到0和3这两种情况。当类型为0时，表示该重定位项无效；当类型为3时，表示该重定位项需要修正为高低32位（HIGHLOW）。</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io">lanb0</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io/2023/09/02/PE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/">https://wustzhb.github.io/2023/09/02/PE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wustzhb.github.io" target="_blank">Lanb0's blog|一个默默无闻的网安爱好者</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/PE%E6%96%87%E4%BB%B6/">PE文件</a></div><div class="post_share"><div class="social-share" data-image="/img/head.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/09/23/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5DFile%20Library/" title="[JS专项训练]File Library WP"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">[JS专项训练]File Library WP</div></div></a></div><div class="next-post pull-right"><a href="/2023/08/28/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5DYara%E8%A7%84%E5%88%99%E5%AD%A6%E4%B9%A0/" title="[免杀学习]Yara规则学习"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">[免杀学习]Yara规则学习</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">lanb0</div><div class="author-info__description">充实地过好每一天</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="card-info-social-icons is-center"><a class="social-icon" href="https://qm.qq.com/cgi-bin/qm/qr?k=Ga7oV2UM08biI8VudKTeFcEdzYPbbXdz&amp;noverify=0&amp;personal_qrcode_source=4" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">没什么大事要宣布的</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E7%A8%8B%E5%BA%8F"><span class="toc-number">2.</span> <span class="toc-text">准备一个简单的程序</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%93%E6%9E%84%E4%BD%93%E7%B3%BB"><span class="toc-number">3.</span> <span class="toc-text">结构体系</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#DOS-%E5%A4%B4"><span class="toc-number">3.1.</span> <span class="toc-text">DOS 头</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#NT%E5%A4%B4"><span class="toc-number">3.2.</span> <span class="toc-text">NT头</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8A%82%E5%A4%B4"><span class="toc-number">3.3.</span> <span class="toc-text">节头</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8A%82"><span class="toc-number">3.4.</span> <span class="toc-text">节</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%B9%E6%AE%8A%E8%8A%82"><span class="toc-number">3.5.</span> <span class="toc-text">特殊节</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#textbss"><span class="toc-number">3.5.1.</span> <span class="toc-text">.textbss</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#msvcjmc"><span class="toc-number">3.5.2.</span> <span class="toc-text">.msvcjmc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#00cfg"><span class="toc-number">3.5.3.</span> <span class="toc-text">.00cfg</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%A8%E9%9D%A2%E6%A2%B3%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">全面梳理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-IMAGE-DOS-HEADER-DosHeader"><span class="toc-number">4.1.</span> <span class="toc-text">struct IMAGE_DOS_HEADER DosHeader</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-IMAGE-DOS-STUB-DosStub"><span class="toc-number">4.2.</span> <span class="toc-text">struct IMAGE_DOS_STUB DosStub</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-IMAGE-NT-HEADERS-NtHeader"><span class="toc-number">4.3.</span> <span class="toc-text">struct IMAGE_NT_HEADERS NtHeader</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#struct-IMAGE-FILE-HEADER-FileHeader"><span class="toc-number">4.3.1.</span> <span class="toc-text">struct IMAGE_FILE_HEADER FileHeader</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#struct-FILE-CHARACTERISTICS-Characteristics"><span class="toc-number">4.3.1.1.</span> <span class="toc-text">struct FILE_CHARACTERISTICS Characteristics</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#struct-IMAGE-OPTIONAL-HEADER32-OptionalHeader"><span class="toc-number">4.3.2.</span> <span class="toc-text">struct IMAGE_OPTIONAL_HEADER32 OptionalHeader</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#struct-DLL-CHARACTERISTICS-DllCharacteristics"><span class="toc-number">4.3.2.1.</span> <span class="toc-text">struct DLL_CHARACTERISTICS DllCharacteristics</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#struct-IMAGE-DATA-DIRECTORY-ARRAY-DataDirArray"><span class="toc-number">4.3.2.2.</span> <span class="toc-text">struct IMAGE_DATA_DIRECTORY_ARRAY DataDirArray</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#struct-IMAGE-DATA-DIRECTORY-Import"><span class="toc-number">4.3.2.2.1.</span> <span class="toc-text">struct IMAGE_DATA_DIRECTORY Import</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-IMAGE-SECTION-HEADER-SectionHeaders"><span class="toc-number">4.4.</span> <span class="toc-text">struct IMAGE_SECTION_HEADER SectionHeaders</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#struct-IMAGE-SECTION-HEADER-SectionHeaders-0"><span class="toc-number">4.4.1.</span> <span class="toc-text">struct IMAGE_SECTION_HEADER SectionHeaders[0]</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#struct-SECTION-CHARACTERISTICS-Characteristics"><span class="toc-number">4.4.1.1.</span> <span class="toc-text">struct SECTION_CHARACTERISTICS Characteristics</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-IMAGE-SECTION-DATA-Section-0"><span class="toc-number">4.5.</span> <span class="toc-text">struct IMAGE_SECTION_DATA Section[0]</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-IMAGE-IMPORT-DESCRIPTOR-ImportDescriptor-0"><span class="toc-number">4.6.</span> <span class="toc-text">struct IMAGE_IMPORT_DESCRIPTOR ImportDescriptor[0]</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#struct-IMAGE-IMPORT-BY-NAME-ImportByName-0"><span class="toc-number">4.6.1.</span> <span class="toc-text">struct IMAGE_IMPORT_BY_NAME ImportByName[0]</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-RESOURCE-DIRECTORY-TABLE-ResourceDirectoryTable"><span class="toc-number">4.7.</span> <span class="toc-text">struct RESOURCE_DIRECTORY_TABLE ResourceDirectoryTable</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-BASE-RELOCATION-TABLE-RelocTable"><span class="toc-number">4.8.</span> <span class="toc-text">struct BASE_RELOCATION_TABLE RelocTable</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#struct-IMAGE-BASE-RELOCATION-BaseReloc-0"><span class="toc-number">4.8.1.</span> <span class="toc-text">struct IMAGE_BASE_RELOCATION BaseReloc[0]</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/09/23/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5DFile%20Library/" title="[JS专项训练]File Library WP">[JS专项训练]File Library WP</a><time datetime="2023-09-23T10:01:00.000Z" title="发表于 2023-09-23 18:01:00">2023-09-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/09/02/PE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/" title="PE结构分析">PE结构分析</a><time datetime="2023-09-02T04:32:00.000Z" title="发表于 2023-09-02 12:32:00">2023-09-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/08/28/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5DYara%E8%A7%84%E5%88%99%E5%AD%A6%E4%B9%A0/" title="[免杀学习]Yara规则学习">[免杀学习]Yara规则学习</a><time datetime="2023-08-28T04:41:00.000Z" title="发表于 2023-08-28 12:41:00">2023-08-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/08/18/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5DCCC-WP/" title="[JS专项训练]CCC WP">[JS专项训练]CCC WP</a><time datetime="2023-08-18T05:43:00.000Z" title="发表于 2023-08-18 13:43:00">2023-08-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/08/18/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5Dblitzprop%20WP/" title="[JS专项训练]blitzprop WP">[JS专项训练]blitzprop WP</a><time datetime="2023-08-18T05:43:00.000Z" title="发表于 2023-08-18 13:43:00">2023-08-18</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/index_img.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 By lanb0</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">欢迎来到lanb0的博客</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script></div></body></html>

