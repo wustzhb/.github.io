@@ -1,0 +1,376 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><title>[JAVA安全]Java Agent初探 | Lanb0's blog|一个默默无闻的网安爱好者</title><meta name="author" content="lanb0"><meta name="copyright" content="lanb0"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="什么是”Java Agent” ?在Java中，”Agent”（代理）是指一个可以附加到Java虚拟机（JVM）上的程序，它可以监控、修改或扩展JVM执行的应用程序的行为。这个术语的使用源于它的工作方式：它像一个代理一样在JVM和应用程序之间进行工作，而不需要改变应用程序本身的代码。 java Agent主要有2种方式  静态Agent：在JVM启动时通过 -javaagent 参数加载。它必须定">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[JAVA安全]Java Agent初探">
+<meta property="og:url" content="https://wustzhb.github.io/2023/11/15/[JAVA%E5%AE%89%E5%85%A8]%E8%AE%A4%E8%AF%86Java-Agent/index.html">
+<meta property="og:site_name" content="Lanb0&#39;s blog|一个默默无闻的网安爱好者">
+<meta property="og:description" content="什么是”Java Agent” ?在Java中，”Agent”（代理）是指一个可以附加到Java虚拟机（JVM）上的程序，它可以监控、修改或扩展JVM执行的应用程序的行为。这个术语的使用源于它的工作方式：它像一个代理一样在JVM和应用程序之间进行工作，而不需要改变应用程序本身的代码。 java Agent主要有2种方式  静态Agent：在JVM启动时通过 -javaagent 参数加载。它必须定">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wustzhb.github.io/img/head.jpg">
+<meta property="article:published_time" content="2023-11-15T11:12:00.000Z">
+<meta property="article:modified_time" content="2023-11-21T04:53:23.067Z">
+<meta property="article:author" content="lanb0">
+<meta property="article:tag" content="CTF">
+<meta property="article:tag" content="WEB安全">
+<meta property="article:tag" content="DASCTF">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wustzhb.github.io/img/head.jpg"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://wustzhb.github.io/2023/11/15/[JAVA%E5%AE%89%E5%85%A8]%E8%AE%A4%E8%AF%86Java-Agent/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  }
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '[JAVA安全]Java Agent初探',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-11-21 12:53:23'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">53</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">28</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/index_img.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Lanb0's blog|一个默默无闻的网安爱好者"><span class="site-name">Lanb0's blog|一个默默无闻的网安爱好者</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于博主</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">[JAVA安全]Java Agent初探</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-11-15T11:12:00.000Z" title="发表于 2023-11-15 19:12:00">2023-11-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-11-21T04:53:23.067Z" title="更新于 2023-11-21 12:53:23">2023-11-21</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/JAVA%E5%AE%89%E5%85%A8/">JAVA安全</a></span></div><div class="meta-secondline"></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="什么是”Java-Agent”"><a href="#什么是”Java-Agent”" class="headerlink" title="什么是”Java Agent” ?"></a>什么是”Java Agent” ?</h1><p>在Java中，”Agent”（代理）是指一个可以附加到Java虚拟机（JVM）上的程序，它可以<strong>监控</strong>、<strong>修改或扩展</strong>JVM执行的应用程序的行为。这个术语的使用源于它的工作方式：它像一个代理一样在<strong>JVM</strong>和<strong>应用程序</strong>之间进行工作，而不需要改变应用程序本身的代码。</p>
+<p>java Agent主要有2种方式</p>
+<ul>
+<li><strong>静态Agent</strong>：在JVM启动时通过 <code>-javaagent</code> 参数加载。它必须定义一个 <code>premain</code> 方法，JVM会在应用程序的 <code>main</code> 方法执行之前调用这个方法。</li>
+<li><strong>动态Agent</strong>：在JVM已经运行的情况下附加。它必须定义一个 <code>agentmain</code> 方法，当Agent被动态附加到JVM时，此方法被调用。</li>
+</ul>
+<h2 id="静态Agent"><a href="#静态Agent" class="headerlink" title="静态Agent"></a>静态Agent</h2><h3 id="创建代理类"><a href="#创建代理类" class="headerlink" title="创建代理类"></a>创建代理类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.instrument.Instrumentation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyAgent</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">premain</span><span class="params">(String agentArgs, Instrumentation inst)</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;premain method called......&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">agentmain</span><span class="params">(String agentArgs, Instrumentation inst)</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;agentmain method called......&quot;</span>);</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Instrumentation</code>对象是Java Agent的核心，提供了一系列强大的工具来控制和监视JVM的运行时行为，它允许Java agent访问和修改类和对象的信息。<code>Instrumentation</code>对象通常在代理初始化时通过<code>premain</code>方法或<code>agentmain</code>方法传递给Java代理。</p>
+<p><code>premain</code> 方法在启动 Java 应用程序时，在 <code>main</code> 方法之前调用 <code>premain</code> 方法。这是 Java Agent API 的一个约定。<code>premain</code> 方法有两个参数：</p>
+<ul>
+<li><code>String agentArgs</code>: 这是传递给代理的参数。这些参数是在启动 JVM 时与代理一起指定的。</li>
+<li><code>Instrumentation inst</code>: 这是 <code>Instrumentation</code> 的一个实例，它提供了各种用于修改和检查类和对象的方法。</li>
+</ul>
+<p>在 Java Agent 中，除了 <code>premain</code> 方法之外，还可以定义一个名为 <code>agentmain</code> 的方法。这个方法允许你的代理代码在 JVM 启动之后的某个时刻被动态地加载和执行。这通常用于那些不能在 JVM 启动时就加载的场景，或者用于那些需要在运行时动态附加到 JVM 的代理。</p>
+<blockquote>
+<p>premain和agentmain方法的必须是静态方法，且必须满足String，Instrumentation的参数规范</p>
+</blockquote>
+<h3 id="创建清单文件"><a href="#创建清单文件" class="headerlink" title="创建清单文件"></a>创建清单文件</h3><p>MANIFEST.MF</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Manifest-Version: 1.0</span><br><span class="line">Premain-Class: MyAgent</span><br><span class="line">Agent-Class: MyAgent</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>Premain-Class用来指定静态代理类，这个类将被查找并在<strong>JVM启动之前</strong>调用其 <code>agentmain</code> 方法。</p>
+<p>Agent-Class用来指定动态代理类，这个类将被查找并在<strong>JVM启动之后</strong>调用其<code>agentmain</code>方法。</p>
+<p>有以下几点需要注意:</p>
+<ul>
+<li>MANIFEST文件必须以一个空行结束。</li>
+<li>清单文件中的属性按照需求来写即可，不需要每个都包含，如果你只需要静态agent，那就只写Premain-Class，反之亦然。</li>
+<li>类名必须是<strong>完整类名</strong></li>
+</ul>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h3 id="打包代理jar"><a href="#打包代理jar" class="headerlink" title="打包代理jar"></a>打包代理jar</h3><p>进入包含manifest以及class文件的目录下，输入jar命令进行打包</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jar cmf MANIFEST.MF myAgent.jar *.class</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="编写主程序"><a href="#编写主程序" class="headerlink" title="编写主程序"></a>编写主程序</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello world!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行的程序用字节码文件或者打包成jar都可以</p>
+<h3 id="代理执行"><a href="#代理执行" class="headerlink" title="代理执行"></a>代理执行</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -javaagent:myAgent.jar -cp Main_path Main</span><br></pre></td></tr></table></figure>
+
+<p>这里注意要添加classpath，否则会抛出NoClassDefFoundError</p>
+<p>执行结果</p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231116_1.png"></p>
+<p>这里是以静态agent的方式使用，所以在JVM启动之前只执行了premain方法</p>
+<h2 id="动态Agent"><a href="#动态Agent" class="headerlink" title="动态Agent"></a>动态Agent</h2><h3 id="编写主程序-1"><a href="#编写主程序-1" class="headerlink" title="编写主程序"></a>编写主程序</h3><p>因为动态agent是以附加到别的jvm上的工作形式，所以我们需要写一个能持续运行的程序</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> java.time.LocalTime.now;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        <span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">            <span class="type">String</span> <span class="variable">time</span> <span class="operator">=</span> String.valueOf(now());</span><br><span class="line">            System.out.println(time.substring(<span class="number">0</span>,<span class="number">8</span>));</span><br><span class="line">            Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译为Main.class文件</p>
+<h3 id="使用Attach-API-附加Agent"><a href="#使用Attach-API-附加Agent" class="headerlink" title="使用Attach API 附加Agent"></a>使用Attach API 附加Agent</h3><p>在刚才的静态Agent编写步骤里Agent JAR文件已经准备好了，现在只需要在另一个Java应用程序中使用Attach API来将这个Agent附加到目标JVM上。</p>
+<p>首先，查找你要附加的JVM进程ID。</p>
+<p>先运行刚才的Main程序</p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231116_2.png"></p>
+<p>使用jps来查找进程PID</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">C:\&gt;jps</span><br><span class="line">17572</span><br><span class="line">32532 Launcher</span><br><span class="line">21928 Jps</span><br><span class="line">29288 Main</span><br></pre></td></tr></table></figure>
+
+
+
+<p>然后，使用Attach API来加载你的Agent。</p>
+<h4 id="attachApi">Attach</h4>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.sun.tools.attach.VirtualMachine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AttachAgent</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">targetPid</span> <span class="operator">=</span> <span class="string">&quot;&quot;</span>;  <span class="comment">// 目标JVM的进程ID</span></span><br><span class="line">        <span class="type">VirtualMachine</span> <span class="variable">vm</span> <span class="operator">=</span> VirtualMachine.attach(targetPid);</span><br><span class="line">        vm.loadAgent(<span class="string">&quot;myAgent.jar&quot;</span>);</span><br><span class="line">        vm.detach();<span class="comment">//释放attach进程</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>执行attach，返回Main程序查看结果，动态agent附着成功</p>
+<img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231117_1.png" style="zoom:67%;" />
+
+<blockquote>
+<p>有一个权限问题，attach api的JVM权限必须 ≥ Main程序的JVM权限，也就是说，你不能用管理员权限运行Main而用普通用户权限去attach，否则会抛出“拒绝访问”的IO异常</p>
+</blockquote>
+<h1 id="阻塞性探究"><a href="#阻塞性探究" class="headerlink" title="阻塞性探究"></a>阻塞性探究</h1><p>将MyAgent的premain与agentamin方法修改如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.instrument.Instrumentation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyAgent</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> count=<span class="number">5</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">premain</span><span class="params">(String agentArgs, Instrumentation inst)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;count;i++) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;premain method called......&quot;</span>);</span><br><span class="line">            Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">agentmain</span><span class="params">(String agentArgs, Instrumentation inst)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;count;i++) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;agentmain method called......&quot;</span>);;</span><br><span class="line">            Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="静态Agent执行结果"><a href="#静态Agent执行结果" class="headerlink" title="静态Agent执行结果"></a>静态Agent执行结果</h2><p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231117_2.png"></p>
+<p>在<code>premain</code>方法执行完毕之前，Main程序不会执行，因此<code>静态Agent</code>具有<strong>阻塞性</strong></p>
+<h2 id="动态Agent执行结果"><a href="#动态Agent执行结果" class="headerlink" title="动态Agent执行结果"></a>动态Agent执行结果</h2><p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231117_3.png"></p>
+<p>动态Agent的本质是将attach JVM连接到主程序JVM的运行环境中，相当于2个JVM共享同一片内存区域，因此动态Agent<strong>不具有阻塞性</strong></p>
+<h1 id="常见应用"><a href="#常见应用" class="headerlink" title="常见应用"></a>常见应用</h1><h2 id="字节码增强-静态"><a href="#字节码增强-静态" class="headerlink" title="字节码增强(静态)"></a>字节码增强(静态)</h2><h3 id="主程序Main类"><a href="#主程序Main类" class="headerlink" title="主程序Main类"></a>主程序Main类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        sayHello();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sayHello</span><span class="params">()</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="-1"><a href="#-1" class="headerlink" title=""></a></h3><h3 id="Agent类"><a href="#Agent类" class="headerlink" title="Agent类"></a>Agent类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span>  java.lang.instrument.Instrumentation;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Agent</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">premain</span><span class="params">(String agentArgs, Instrumentation inst)</span> &#123;</span><br><span class="line">        inst.addTransformer(<span class="keyword">new</span> <span class="title class_">ClassModifier</span>());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code>inst.addTransformer</code> 方法是 Java Agent中的一个关键方法，用于添加一个类文件转换器（<code>ClassFileTransformer</code>）到 JVM中。这是用来实现字节码增强的一种方式。</p>
+<h4 id="ClassFileTransformer实现类"><a href="#ClassFileTransformer实现类" class="headerlink" title="ClassFileTransformer实现类"></a>ClassFileTransformer实现类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javassist.*;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.ClassFileTransformer;</span><br><span class="line"><span class="keyword">import</span> java.security.ProtectionDomain;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ClassModifier</span> <span class="keyword">implements</span> <span class="title class_">ClassFileTransformer</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">byte</span>[] transform(ClassLoader loader, String className, Class&lt;?&gt; classBeingRedefined,</span><br><span class="line">                            ProtectionDomain protectionDomain, <span class="type">byte</span>[] classfileBuffer) &#123;</span><br><span class="line">        <span class="keyword">if</span> (className.equals(<span class="string">&quot;Main&quot;</span>)) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="type">ClassPool</span> <span class="variable">pool</span> <span class="operator">=</span> ClassPool.getDefault();</span><br><span class="line">                <span class="type">CtClass</span> <span class="variable">cc</span> <span class="operator">=</span> pool.makeClass(<span class="keyword">new</span> <span class="title class_">java</span>.io.ByteArrayInputStream(classfileBuffer));</span><br><span class="line">                <span class="type">CtMethod</span> <span class="variable">m</span> <span class="operator">=</span> cc.getDeclaredMethod(<span class="string">&quot;sayHello&quot;</span>);</span><br><span class="line"></span><br><span class="line">                m.insertBefore(<span class="string">&quot;&#123; System.out.println(\&quot;Before hello\&quot;); &#125;&quot;</span>);</span><br><span class="line">                m.insertAfter(<span class="string">&quot;&#123; System.out.println(\&quot;After hello\&quot;); &#125;&quot;</span>, <span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">                <span class="type">byte</span>[] byteCode = cc.toBytecode();</span><br><span class="line">                cc.detach();</span><br><span class="line">                <span class="keyword">return</span> byteCode;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>ClassModifier</strong></p>
+<ul>
+<li>这是一个实现了 <code>ClassFileTransformer</code> 接口的对象。</li>
+<li>当 JVM 加载或者重新转换(<strong>retransformClasses</strong>)一个类时，会回调这个对象的 <code>transform</code> 方法，允许我们修改类的字节码。</li>
+</ul>
+<blockquote>
+<p>有一点很重要，javassist版本要对应JDK的适用范围。比如我用的是JDK 17，所以我用的是最新的3.29.2的javassist。如果你的JDK版本很高，那么javassist对应的版本也要更新才对，否则可能出现各种错误。</p>
+</blockquote>
+<h3 id="清单文件"><a href="#清单文件" class="headerlink" title="清单文件"></a>清单文件</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Manifest-Version: 1.0</span><br><span class="line">Premain-Class: Agent</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="打包测试"><a href="#打包测试" class="headerlink" title="打包测试"></a>打包测试</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">javac -cp .;./lib/* *.java</span><br><span class="line"></span><br><span class="line">jar cvmf MANIFEST.MF myAgent.jar *.class</span><br><span class="line"></span><br><span class="line">java -javaagent:myAgent.jar -cp .;./lib/* Main</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231118_1.png"></p>
+<p>成功在sayHello方法执行前与执行后执行insert中的代码</p>
+<h2 id="字节码增强-动态"><a href="#字节码增强-动态" class="headerlink" title="字节码增强(动态)"></a>字节码增强(动态)</h2><h3 id="主程序Main类-1"><a href="#主程序Main类-1" class="headerlink" title="主程序Main类"></a>主程序Main类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        <span class="keyword">while</span> (<span class="literal">true</span>)&#123;</span><br><span class="line">            Thread.sleep(<span class="number">2000</span>);</span><br><span class="line">            hello();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">hello</span><span class="params">()</span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Agent类-1"><a href="#Agent类-1" class="headerlink" title="Agent类"></a>Agent类</h3><p>这里我将上文使用的<code>ClassFileTransformer实现类</code>换成了实现ClassFileTransformer接口的<code>匿名类</code>，快捷一些</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javassist.*;</span><br><span class="line"><span class="keyword">import</span> java.io.ByteArrayInputStream;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.ClassFileTransformer;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.IllegalClassFormatException;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.Instrumentation;</span><br><span class="line"><span class="keyword">import</span> java.lang.instrument.UnmodifiableClassException;</span><br><span class="line"><span class="keyword">import</span> java.security.ProtectionDomain;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Agent</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">agentmain</span><span class="params">(String agentArgs, Instrumentation inst)</span> <span class="keyword">throws</span> UnmodifiableClassException &#123;</span><br><span class="line">		<span class="comment">//获取所有已经加载到JVM中的类</span></span><br><span class="line">        Class[] classes = inst.getAllLoadedClasses();</span><br><span class="line">        <span class="type">Class</span> <span class="variable">cls</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//从中获取到Main类</span></span><br><span class="line">        <span class="keyword">for</span> (Class tempcls: classes</span><br><span class="line">             ) &#123;</span><br><span class="line">            <span class="keyword">if</span>(tempcls.getName().equals(<span class="string">&quot;Main&quot;</span>)) &#123;</span><br><span class="line">                cls = tempcls;</span><br><span class="line">                System.out.println(<span class="string">&quot;catch class:&quot;</span>+tempcls.getName());</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//注册一个类转换器</span></span><br><span class="line">        inst.addTransformer(<span class="keyword">new</span> <span class="title class_">ClassFileTransformer</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="type">byte</span>[] transform(ClassLoader loader, String className, Class&lt;?&gt; classBeingRedefined, ProtectionDomain protectionDomain, <span class="type">byte</span>[] classfileBuffer) <span class="keyword">throws</span> IllegalClassFormatException &#123;</span><br><span class="line"></span><br><span class="line">                <span class="type">ClassPool</span> <span class="variable">classPool</span> <span class="operator">=</span> ClassPool.getDefault();</span><br><span class="line">                <span class="keyword">if</span> (classBeingRedefined != <span class="literal">null</span>) &#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;Class Transformed: &quot;</span> + className);</span><br><span class="line">                    <span class="comment">/*</span></span><br><span class="line"><span class="comment">                    这里为什么需要将classBeingRedefined作为javassist的classpath传入，而静态agent却不用呢</span></span><br><span class="line"><span class="comment">                    在下文会有一个探究</span></span><br><span class="line"><span class="comment">                    */</span></span><br><span class="line">                    <span class="type">ClassClassPath</span> <span class="variable">ccp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ClassClassPath</span>(classBeingRedefined);</span><br><span class="line">                    classPool.insertClassPath(ccp);</span><br><span class="line">                &#125;</span><br><span class="line">                CtClass ctClass;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    ctClass = classPool.makeClass(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(classfileBuffer));</span><br><span class="line">                    </span><br><span class="line">                    <span class="comment">//获取hello方法</span></span><br><span class="line">                    <span class="type">CtMethod</span> <span class="variable">m</span> <span class="operator">=</span> ctClass.getDeclaredMethod(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">                    <span class="comment">//替换代码</span></span><br><span class="line">                    m.setBody(<span class="string">&quot;&#123; System.out.println(\&quot; the method has been modified! \&quot;); &#125;&quot;</span>);</span><br><span class="line">                    ctClass.detach();</span><br><span class="line">                    <span class="keyword">return</span> ctClass.toBytecode();</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//重新转换Main类，使其触发注册过的ClassFileTransformer实现字节码增强</span></span><br><span class="line">        inst.retransformClasses(cls);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Attach-API"><a href="#Attach-API" class="headerlink" title="Attach API"></a>Attach API</h3><p>上述内容中有<a href="#attachApi">Attach API</a>，不再赘述</p>
+<h3 id="清单文件-1"><a href="#清单文件-1" class="headerlink" title="清单文件"></a>清单文件</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Manifest-Version: 1.0</span><br><span class="line">Class-Path: ./lib/javassist-3.29.2-GA.jar</span><br><span class="line">Agent-Class: Agent</span><br><span class="line">Can-Redefine-Classes: true</span><br><span class="line">Can-Retransform-Classes: true</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="打包测试-1"><a href="#打包测试-1" class="headerlink" title="打包测试"></a>打包测试</h3><p>在上个例子中，在主程序的classpath中指定了javaassist依赖项，但在实战中的环境不一定具备此条件，同时更多的主动权在攻击者手中。所以这次我们将javaassist依赖项直接打包在Agent Jar中。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">jar cvmf MANIFEST.MF myAgent.jar *.class ./lib/*</span><br><span class="line"></span><br><span class="line">已添加清单</span><br><span class="line">正在添加: Agent$1.class(输入 = 2162) (输出 = 1105)(压缩了 48%)</span><br><span class="line">正在添加: Agent.class(输入 = 1600) (输出 = 861)(压缩了 46%)</span><br><span class="line">正在添加: lib/javassist-3.29.2-GA.jar(输入 = 794137) (输出 = 739165)(压缩了 6%)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行Main，查看PID，最终Attach 一条龙</p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231120_1.png"></p>
+<p>成功通过动态Agent实现字节码增强</p>
+<h3 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h3><h4 id="transform-方法的调用时机"><a href="#transform-方法的调用时机" class="headerlink" title="transform 方法的调用时机"></a>transform 方法的调用时机</h4><p><strong>类加载时调用</strong>：最常见的情况是，在 JVM 加载类时，如果已经通过 <code>addTransformer</code> 方法注册了 <code>ClassFileTransformer</code>，那么对于每个被加载的类，JVM 都会调用这个 <code>ClassFileTransformer</code> 的 <code>transform</code> 方法。这允许你在类实际被使用前修改其字节码,对应的是上述中静态Agent修改字节码的情况。</p>
+<p><strong>类重新转换时调用</strong>：当你调用 <code>inst.retransformClasses</code> 方法请求重新转换一个或多个已加载的类时，JVM 也会调用 <code>ClassFileTransformer</code> 的 <code>transform</code> 方法(前提是<code>canRetransform</code>参数为<code>true</code>)，即使这个类已经被加载。这是为了应用在运行时的字节码修改。</p>
+<h4 id="字节码增强的本质"><a href="#字节码增强的本质" class="headerlink" title="字节码增强的本质"></a>字节码增强的本质</h4><p><strong>1. 运行时字节码修改</strong></p>
+<p>字节码增强发生在类的字节码级别，通常是在类被加载到 JVM 之前（静态增强）或者在类已经加载之后（动态增强）。这意味着你可以在不改变原始源代码的情况下，改变类的行为。</p>
+<p><strong>2. 不重新加载类</strong></p>
+<p>与重新编译或替换类文件不同，字节码增强并不涉及类的重新加载过程。即便是对于已加载的类，通过 <code>retransformClasses</code> 方法触发的增强操作只是动态替换内存中的类定义，而不会产生 JVM 完全重新加载一次类的行为。</p>
+<blockquote>
+<p>retransformClasses方法并不会触发被重新转换类的static代码块</p>
+</blockquote>
+<h4 id="javassist的ClassClassPath问题"><a href="#javassist的ClassClassPath问题" class="headerlink" title="javassist的ClassClassPath问题"></a>javassist的ClassClassPath问题</h4><p>在前面的例子中，静态增强与动态增强在转换方法的不同上，本质的区别就只有动态增强比静态增强多两行代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ClassClassPath</span> <span class="variable">ccp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ClassClassPath</span>(classBeingRedefined);</span><br><span class="line">classPool.insertClassPath(ccp);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>ClassPool的classpath是由Javassist这类库在Java应用程序运行时动态管理的。ClassPool是一个自定义的类加载和管理机制，它独立于JVM的标准类加载器。</li>
+<li>通过ClassPool的classpath，你可以动态地添加<code>(insertClassPath)</code>、移除或修改类路径。这允许在运行时进行更复杂的操作，如动态地修改类的结构或行为。</li>
+<li>ClassPool可以访问JVM的classpath中的类。当你在ClassPool中查找类时，如果该类在JVM的classpath中，ClassPool可以加载和使用它。但是，如果你在ClassPool中添加新的类路径或修改类，这些变化不会反映到JVM的标准类加载器中</li>
+</ul>
+<p>如果没有这两行代码，会报错</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">javassist.CannotCompileException: [source error] no such class: System.out</span><br><span class="line">        ......</span><br><span class="line">Caused by: compile error: no such class: System.out</span><br><span class="line">		at javassist.compiler.MemberResolver.searchImports(MemberResolver.java:479)</span><br><span class="line">        ... 14 more</span><br></pre></td></tr></table></figure>
+
+<p><strong>那么问题来了既然ClassPool可以访问JVM的classpath中的类，那为什么会显示<code>no such class: System.out</code>呢？</strong></p>
+<p>开始探索，</p>
+<p>首先跟进到<code>searchImports</code>方法，</p>
+<img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231120_2.png" style="zoom:50%;" />
+
+<p>不难看出，因为classPool并没有成功获取到System.out这个类(java.lang.System.out也测试过)，所以才会抛出<code>compile error: no such class: System.out</code>但正常情况下java.lang包是默认包含在classpath中的。</p>
+<p>接下来，我们需要找到初始ClassPool的classpath，看看里面的情况</p>
+<p>回到Agent,跟进ClassPool.getDefault()方法，</p>
+<img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231120_3.png" style="zoom:67%;" />
+
+<p>该方法会添加系统类路径(<code>包括 Java 标准库和其他基础类路径</code>),佐证了上述观点</p>
+<p>跟进appendSystemPath方法，</p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231121_1.png"></p>
+<p>继续跟进，</p>
+<img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231121_2.png" style="zoom:80%;" />
+
+<blockquote>
+<p>以JAVA 9为分界线，做了2种不同的添加系统类classpath方法的适配</p>
+</blockquote>
+<p>跟进appendClassPath方法，</p>
+<img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231121_3.png" style="zoom:67%;" />
+
+<blockquote>
+<p><code>appendClassPath</code> 方法在 <code>ClassPoolTail</code> 类中用于将新的 <code>ClassPath</code> 添加到类路径列表的末尾。</p>
+</blockquote>
+<p>当前类<code>ClassPoolTail</code>下的toString方法刚好能够打印当前ClassPool实例的classpath</p>
+<img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231121_4.png" style="zoom: 67%;" />
+
+
+
+<p>而<code>ClassPool</code>类的toString恰好调用了上述方法，</p>
+<img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231121_5.png" style="zoom:67%;" />
+
+
+
+<p>之后通过打印classPool来查看其classpath</p>
+<p>在setBody上一行增加一行代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(<span class="string">&quot;classPool&#x27;s cp: \n&quot;</span>+classPool+<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">m.setBody(<span class="string">&quot;&#123;System.out.println(\&quot; the method has been modified! \&quot;); &#125;&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>有insertClassPath</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[class path: Main.class;&lt;null&gt;;]</span><br></pre></td></tr></table></figure>
+
+<p>无insertClassPath</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[class path: &lt;null&gt;;]</span><br></pre></td></tr></table></figure>
+
+
+
+<p>从这里似乎并不能找到为什么会出现System.out无法识别的原因。因为Main.class和java.lang.System.class，一个是自定义类，一个是java标准库，二者毫无关系。</p>
+<p>额外补充一个，静态Agent的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[class path: jdk.internal.loader.ClassLoaders$AppClassLoader@4dc63996;]</span><br></pre></td></tr></table></figure>
+
+
+
+<p>让我们有的放矢地更改一下，既然javaassist找不到System.class，那我们就手动给他System的类路径</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (classBeingRedefined != <span class="literal">null</span>) &#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;Class Transformed: &quot;</span> + classBeingRedefined);</span><br><span class="line">    				<span class="comment">//这里把classBeingRedefined改为System.class</span></span><br><span class="line">                    <span class="type">ClassClassPath</span> <span class="variable">ccp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ClassClassPath</span>(System.class);</span><br><span class="line">                    classPool.insertClassPath(ccp);</span><br><span class="line">                &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>执行结果</p>
+<p><img src="https://lanb0-1305167197.cos.ap-nanjing.myqcloud.com/20231121_6.png"></p>
+<p>这次我们显式地将System.class加入到javaassist的classpath中，发现执行成功，并且效果和之前一样都实现了字节码增强。</p>
+<p>通过以上的探究，加之一些资料的查询，我目前的推测如下(不一定准确)：</p>
+<ul>
+<li>在 Java 中，<code>java.lang</code> 和其他标准库的类通常由 “引导类加载器”（Bootstrap ClassLoader）加载，而由于引导类加载器是 Java 运行时的一部分，它通常不会出现在由应用程序代码打印的类路径列表中。所以，在静态Agent的环境中，既然javaassist能够默认的加载应用类加载器(AppClassLoader), 那么Bootstrap ClassLoader也应该能够被默认加载，从而加载java.lang这样的标准库，但对于我们来说是<strong>透明的</strong>。并且，javaassist可以共享使用JVM 的classpath(针对静态)。</li>
+<li>在<code>动态运行</code>的JVM环境中，不像静态Agent的ClassPool.getDefault()方法会创建一个<code>包含系统类路径</code>的 <code>ClassPool</code>，在JVM正在运行时，ClassPool.getDefault()由于某种原因无法获取到系统类路径(<code>在内存中无法找到classpath?)</code>。</li>
+<li>当我们去手动地为ClassPool去insertClassPath一个class时，javaassist知道去哪里(内存中)找到该类的字节码 ，之后会调用相应的类加载器，在加载该class时，会产生一系列的蝴蝶效应，自动完成其他类的加载。(这一点没想明白，有点牵强)</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io">lanb0</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wustzhb.github.io/2023/11/15/[JAVA%E5%AE%89%E5%85%A8]%E8%AE%A4%E8%AF%86Java-Agent/">https://wustzhb.github.io/2023/11/15/[JAVA%E5%AE%89%E5%85%A8]%E8%AE%A4%E8%AF%86Java-Agent/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wustzhb.github.io" target="_blank">Lanb0's blog|一个默默无闻的网安爱好者</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CTF/">CTF</a><a class="post-meta__tags" href="/tags/WEB%E5%AE%89%E5%85%A8/">WEB安全</a><a class="post-meta__tags" href="/tags/DASCTF/">DASCTF</a></div><div class="post_share"><div class="social-share" data-image="/img/head.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/10/23/%5B2023CISCN%5D%E5%9B%BD%E8%B5%9B%E5%88%9D%E8%B5%9BWEB%E9%A2%98%E7%9B%AE%E5%A4%8D%E7%8E%B0/" title="[2023CISCN]国赛初赛WEB题目复现"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">[2023CISCN]国赛初赛WEB题目复现</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/10/23/%5BDASCTF%20X%20CBCTF%202023%EF%BD%9C%E6%97%A0%E7%95%8F%E8%80%85%E5%85%88%E8%A1%8C%5DWEB%E9%A2%98%E7%9B%AE%E5%A4%8D%E7%8E%B0/" title="[DASCTF X CBCTF 2023｜无畏者先行]WEB题目复现.md"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-23</div><div class="title">[DASCTF X CBCTF 2023｜无畏者先行]WEB题目复现.md</div></div></a></div><div><a href="/2023/10/23/%5B2023CISCN%5D%E5%9B%BD%E8%B5%9B%E5%88%9D%E8%B5%9BWEB%E9%A2%98%E7%9B%AE%E5%A4%8D%E7%8E%B0/" title="[2023CISCN]国赛初赛WEB题目复现"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-23</div><div class="title">[2023CISCN]国赛初赛WEB题目复现</div></div></a></div><div><a href="/2023/04/04/2023CTFSHOW%E6%84%9A%E4%BA%BA%E6%9D%AF%E9%83%A8%E5%88%86WP(WEB&MISC)/" title="2023CTFSHOW愚人杯WEB部分WP"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-04-04</div><div class="title">2023CTFSHOW愚人杯WEB部分WP</div></div></a></div><div><a href="/2023/05/16/%5B2023AliyunCTF%5DWEB%E9%A2%98%E5%A4%8D%E7%8E%B0/" title="[2023阿里云CTF]ezBean复现及相关fastjson机制深入分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-16</div><div class="title">[2023阿里云CTF]ezBean复现及相关fastjson机制深入分析</div></div></a></div><div><a href="/2023/06/09/%5B2023%E9%99%95%E8%A5%BF%E7%9C%81%E5%A4%A7%E5%AD%A6%E7%94%9F%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E8%B5%9B%5DWEB%E5%A4%8D%E7%8E%B0/" title="[2023陕西省大学生网络安全大赛]WEB复现"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-09</div><div class="title">[2023陕西省大学生网络安全大赛]WEB复现</div></div></a></div><div><a href="/2023/05/16/%5BGFCTF2021%5D%E6%96%87%E4%BB%B6%E6%9F%A5%E7%9C%8B%E5%99%A8%E5%A4%8D%E7%8E%B0/" title="[GFCTF2021]文件查看器复现"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-16</div><div class="title">[GFCTF2021]文件查看器复现</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">lanb0</div><div class="author-info__description">充实地过好每一天</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">53</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">28</div></a></div><div class="card-info-social-icons is-center"><a class="social-icon" href="https://qm.qq.com/cgi-bin/qm/qr?k=Ga7oV2UM08biI8VudKTeFcEdzYPbbXdz&amp;noverify=0&amp;personal_qrcode_source=4" target="_blank" title="QQ"><i class="fab fa-qq"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">没什么大事要宣布的</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E2%80%9DJava-Agent%E2%80%9D"><span class="toc-number">1.</span> <span class="toc-text">什么是”Java Agent” ?</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81Agent"><span class="toc-number">1.1.</span> <span class="toc-text">静态Agent</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BB%A3%E7%90%86%E7%B1%BB"><span class="toc-number">1.1.1.</span> <span class="toc-text">创建代理类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E6%B8%85%E5%8D%95%E6%96%87%E4%BB%B6"><span class="toc-number">1.1.2.</span> <span class="toc-text">创建清单文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link"><span class="toc-number">1.1.3.</span> <span class="toc-text"></span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E4%BB%A3%E7%90%86jar"><span class="toc-number">1.1.4.</span> <span class="toc-text">打包代理jar</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E4%B8%BB%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.1.5.</span> <span class="toc-text">编写主程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%90%86%E6%89%A7%E8%A1%8C"><span class="toc-number">1.1.6.</span> <span class="toc-text">代理执行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81Agent"><span class="toc-number">1.2.</span> <span class="toc-text">动态Agent</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E4%B8%BB%E7%A8%8B%E5%BA%8F-1"><span class="toc-number">1.2.1.</span> <span class="toc-text">编写主程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8Attach-API-%E9%99%84%E5%8A%A0Agent"><span class="toc-number">1.2.2.</span> <span class="toc-text">使用Attach API 附加Agent</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#attachApi"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">Attach</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%98%BB%E5%A1%9E%E6%80%A7%E6%8E%A2%E7%A9%B6"><span class="toc-number">2.</span> <span class="toc-text">阻塞性探究</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81Agent%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">2.1.</span> <span class="toc-text">静态Agent执行结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81Agent%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">2.2.</span> <span class="toc-text">动态Agent执行结果</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%BA%94%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">常见应用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E5%A2%9E%E5%BC%BA-%E9%9D%99%E6%80%81"><span class="toc-number">3.1.</span> <span class="toc-text">字节码增强(静态)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E7%A8%8B%E5%BA%8FMain%E7%B1%BB"><span class="toc-number">3.1.1.</span> <span class="toc-text">主程序Main类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#-1"><span class="toc-number">3.1.2.</span> <span class="toc-text"></span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Agent%E7%B1%BB"><span class="toc-number">3.1.3.</span> <span class="toc-text">Agent类</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ClassFileTransformer%E5%AE%9E%E7%8E%B0%E7%B1%BB"><span class="toc-number">3.1.3.1.</span> <span class="toc-text">ClassFileTransformer实现类</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B8%85%E5%8D%95%E6%96%87%E4%BB%B6"><span class="toc-number">3.1.4.</span> <span class="toc-text">清单文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E6%B5%8B%E8%AF%95"><span class="toc-number">3.1.5.</span> <span class="toc-text">打包测试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E5%A2%9E%E5%BC%BA-%E5%8A%A8%E6%80%81"><span class="toc-number">3.2.</span> <span class="toc-text">字节码增强(动态)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E7%A8%8B%E5%BA%8FMain%E7%B1%BB-1"><span class="toc-number">3.2.1.</span> <span class="toc-text">主程序Main类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Agent%E7%B1%BB-1"><span class="toc-number">3.2.2.</span> <span class="toc-text">Agent类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Attach-API"><span class="toc-number">3.2.3.</span> <span class="toc-text">Attach API</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B8%85%E5%8D%95%E6%96%87%E4%BB%B6-1"><span class="toc-number">3.2.4.</span> <span class="toc-text">清单文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E6%B5%8B%E8%AF%95-1"><span class="toc-number">3.2.5.</span> <span class="toc-text">打包测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A5%E5%85%85"><span class="toc-number">3.2.6.</span> <span class="toc-text">补充</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#transform-%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8%E6%97%B6%E6%9C%BA"><span class="toc-number">3.2.6.1.</span> <span class="toc-text">transform 方法的调用时机</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E5%A2%9E%E5%BC%BA%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="toc-number">3.2.6.2.</span> <span class="toc-text">字节码增强的本质</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#javassist%E7%9A%84ClassClassPath%E9%97%AE%E9%A2%98"><span class="toc-number">3.2.6.3.</span> <span class="toc-text">javassist的ClassClassPath问题</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/15/%5BJAVA%E5%AE%89%E5%85%A8%5D%E8%AE%A4%E8%AF%86Java-Agent/" title="[JAVA安全]Java Agent初探">[JAVA安全]Java Agent初探</a><time datetime="2023-11-15T11:12:00.000Z" title="发表于 2023-11-15 19:12:00">2023-11-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/23/%5B2023CISCN%5D%E5%9B%BD%E8%B5%9B%E5%88%9D%E8%B5%9BWEB%E9%A2%98%E7%9B%AE%E5%A4%8D%E7%8E%B0/" title="[2023CISCN]国赛初赛WEB题目复现">[2023CISCN]国赛初赛WEB题目复现</a><time datetime="2023-10-23T10:00:00.000Z" title="发表于 2023-10-23 18:00:00">2023-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/23/%5BDASCTF%20X%20CBCTF%202023%EF%BD%9C%E6%97%A0%E7%95%8F%E8%80%85%E5%85%88%E8%A1%8C%5DWEB%E9%A2%98%E7%9B%AE%E5%A4%8D%E7%8E%B0/" title="[DASCTF X CBCTF 2023｜无畏者先行]WEB题目复现.md">[DASCTF X CBCTF 2023｜无畏者先行]WEB题目复现.md</a><time datetime="2023-10-23T10:00:00.000Z" title="发表于 2023-10-23 18:00:00">2023-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/23/%5B%E5%B7%A5%E5%85%B7%E5%AD%A6%E4%B9%A0%5D%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7nps%E5%88%9D%E6%8E%A2/" title="[工具学习]内网穿透工具nps初探">[工具学习]内网穿透工具nps初探</a><time datetime="2023-10-23T10:00:00.000Z" title="发表于 2023-10-23 18:00:00">2023-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/02/%5BJAVA%E5%AE%89%E5%85%A8%5DROME%E9%93%BE%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90/" title="[JAVA安全]ROME链复现与分析">[JAVA安全]ROME链复现与分析</a><time datetime="2023-10-02T10:00:00.000Z" title="发表于 2023-10-02 18:00:00">2023-10-02</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/index_img.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 By lanb0</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">欢迎来到lanb0的博客</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script></div></body></html>
